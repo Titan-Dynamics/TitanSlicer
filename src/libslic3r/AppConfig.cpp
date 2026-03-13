@@ -531,6 +531,13 @@ void AppConfig::set_defaults()
     erase("app", "object_settings_pos");
     erase("app", "object_settings_size");
     erase("app", "severity_level");
+
+    // TitanSlicer edition migration: runs once when upgrading from OrcaSlicer
+    if (get("td_edition").empty()) {
+        set_bool("td_edition", true);
+        // Force dark mode
+        set("dark_color_mode", "1");
+    }
 }
 
 #ifdef WIN32
