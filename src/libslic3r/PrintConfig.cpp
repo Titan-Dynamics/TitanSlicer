@@ -1004,6 +1004,12 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Cool Plate (SuperTack)"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
+    def = this->add("production_ready", coBool);
+    def->label = L("Production Ready");
+    def->tooltip = L("Mark this project as production ready. When enabled, saving will require explicit confirmation to prevent accidental overwrites.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     // Orca: allow profile maker to set default bed type in machine profile
     // This option won't be shown in the UI
     def = this->add("default_bed_type", coString);

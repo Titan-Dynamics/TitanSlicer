@@ -19,7 +19,16 @@
       "Bash(grep -r \"RC_ICON\\\\|IDI_ICON\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src --include=\"*.cpp\" --include=\"*.h\" --include=\"*.hpp\" 2>/dev/null | head -5)",
       "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images -name \"OrcaSlicer*\" -type f 2>/dev/null | sort)",
       "Bash(grep -r \"OrcaSlicer.desktop\\\\|icon.*theme\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer --include=\"*.cpp\" --include=\"CMakeLists.txt\" 2>/dev/null | head -10)",
-      "Bash(ls -lh /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/splash* 2>/dev/null)"
+      "Bash(ls -lh /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/splash* 2>/dev/null)",
+      "Bash(grep -r \"class.*ComboBox\\\\|m_filament.*ComboBox\\\\|m_process.*ComboBox\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src/slic3r/GUI/*.hpp | head -30)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src/slic3r/GUI -name \"*.hpp\" -o -name \"*.cpp\" | xargs grep -l \"class Sidebar\" | head -5)",
+      "Bash(grep -l \"Sidebar\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src/slic3r/GUI/*.hpp | head -5)",
+      "Bash(grep -n \"s_project_options\\\\|PROJECT_OPTIONS\" src/libslic3r/*.cpp src/libslic3r/*.hpp | head -30)",
+      "Bash(cd \"C:\\\\Users\\\\MohammadAdib\\\\Documents\\\\GitHub\\\\TitanSlicer\\\\build\" && cmake --build . --config Release --target ALL_BUILD -- -m 2>&1 | tail -100)",
+      "Bash(cd \"C:\\\\Users\\\\MohammadAdib\\\\Documents\\\\GitHub\\\\TitanSlicer\\\\build\" && cmake --build . --config Release --target ALL_BUILD -- -m:4 2>&1 | tail -80)",
+      "Bash(taskkill //F //IM MSBuild.exe 2>/dev/null; taskkill //F //IM cl.exe 2>/dev/null; echo \"Done\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
