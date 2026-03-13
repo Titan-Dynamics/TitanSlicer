@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where msbuild:*)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build\" -name \"*gmp*\" -o -name \"*mpfr*\" 2>/dev/null | head -40)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep\" -type f \\\\\\( -name \"*.lib\" -o -name \"*.dll\" -o -name \"*.a\" \\\\\\) 2>/dev/null | grep -i \"gmp\\\\|mpfr\")",
+      "Bash(grep -r \"gmp\\\\|mpfr\\\\|GMP\\\\|MPFR\" \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/CGAL/\" --include=\"*.cmake\" 2>/dev/null | head -30)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/CGAL\" -name \"FindGMP*\" -o -name \"FindMPFR*\" -o -name \"*GMP*\" -o -name \"*MPFR*\" 2>/dev/null | grep -E \"\\\\.\\(cmake|txt\\)$\")",
+      "Bash(grep -r \"GMP\\\\|MPFR\" \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/CGAL/cgal/\" --include=\"*.cmake\" 2>/dev/null | head -20)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep\" -name \"*.cmake\" 2>/dev/null | grep -i cgal | head -10)",
+      "Bash(ls \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/lib/\"*gmp* \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/lib/\"*mpfr* 2>&1)",
+      "Bash(ls \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*gmp* \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*mpfr* 2>&1)"
+    ]
+  }
+}
