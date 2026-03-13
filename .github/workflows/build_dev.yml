@@ -96,12 +96,13 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: "Dev Build ${{ steps.version.outputs.ver_pure }} (${{ steps.version.outputs.date }})"
           prerelease: true
-          generate_release_notes: true
+          body: |
+            <img width="256" height="256" alt="icon" src="https://github.com/user-attachments/assets/6796538f-4a06-4ffa-8bf4-1f2e5cf369da" />
+
+            **Full Changelog**: https://github.com/Titan-Dynamics/TitanSlicer/commits/${{ steps.version.outputs.tag }}
           files: |
-            artifacts/**/*.exe
-            artifacts/**/*.dmg
-            artifacts/**/*.AppImage
-            artifacts/**/*.zip
-            artifacts/**/*.flatpak
+            artifacts/**/TitanSlicer_Windows_Installer_*.exe
+            artifacts/**/TitanSlicer_Mac_universal_*.dmg
+            artifacts/**/TitanSlicer_Linux_AppImage*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
