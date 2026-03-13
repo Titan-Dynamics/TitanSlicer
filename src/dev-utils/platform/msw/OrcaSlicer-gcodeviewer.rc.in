@@ -13,7 +13,7 @@ PRODUCTVERSION @SLIC3R_VERSION@
    VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
    VALUE "InternalName", "@SLIC3R_APP_NAME@ G-code Viewer"
    VALUE "LegalCopyright", ""
-   VALUE "OriginalFilename", "bambu-gcodeviewer.exe"
+   VALUE "OriginalFilename", "titan-gcodeviewer.exe"
   }
  }
  BLOCK "VarFileInfo"

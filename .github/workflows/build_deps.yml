@@ -82,7 +82,7 @@ jobs:
             fi
             ./build_release_macos.sh -dx ${{ !vars.SELF_HOSTED && '-1' || '' }} -a ${{ inputs.arch }} -t 10.15
             (cd "${{ github.workspace }}/deps/build/${{ inputs.arch }}" && \
-            find . -mindepth 1 -maxdepth 1 ! -name 'OrcaSlicer_dep' -exec rm -rf {} +)
+            find . -mindepth 1 -maxdepth 1 ! -name 'TitanSlicer_dep' -exec rm -rf {} +)
 
 
       - name: Apt-Install Dependencies
@@ -96,7 +96,7 @@ jobs:
             mkdir -p ${{ github.workspace }}/deps/build/destdir
             ./build_linux.sh -dr
             cd deps/build
-            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
+            tar -czvf TitanSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
 
       # Upload Artifacts
@@ -104,15 +104,15 @@ jobs:
       #   if: contains(inputs.os, 'macos')
       #   uses: actions/upload-artifact@v6
       #   with:
-      #     name: OrcaSlicer_dep_mac_${{ env.date }}
-      #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.tar.gz
+      #     name: TitanSlicer_dep_mac_${{ env.date }}
+      #     path: ${{ github.workspace }}/deps/build/TitanSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v6
         with:
-          name: OrcaSlicer_dep_win64_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
+          name: TitanSlicer_dep_win64_${{ env.date }}
+          path: ${{ github.workspace }}/deps/build/TitanSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
         if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
@@ -120,11 +120,11 @@ jobs:
           ubuntu-ver: ${{ (inputs.os == 'ubuntu-20.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
         uses: actions/upload-artifact@v6
         with:
-          name: OrcaSlicer_dep_ubuntu_${{ env.ubuntu-ver }}_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
+          name: TitanSlicer_dep_ubuntu_${{ env.ubuntu-ver }}_${{ env.date }}
+          path: ${{ github.workspace }}/deps/build/TitanSlicer_dep_ubuntu_*.tar.gz
 
   build_orca:
-    name: Build OrcaSlicer
+    name: Build TitanSlicer
     needs: [build_deps]
     if: ${{ !cancelled() && !inputs.build-deps-only && (inputs.force-build || (inputs.valid-cache == true && needs.build_deps.result == 'skipped') || (inputs.valid-cache != true && success())) }}
     uses: ./.github/workflows/build_orca.yml

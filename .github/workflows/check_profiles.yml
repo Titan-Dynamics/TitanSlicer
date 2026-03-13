@@ -39,8 +39,8 @@ jobs:
       - name: Download
         working-directory: ${{ github.workspace }}
         run: |
-          curl -LJO https://github.com/SoftFever/Orca_tools/releases/download/1/OrcaSlicer_profile_validator
-          chmod +x ./OrcaSlicer_profile_validator
+          curl -LJO https://github.com/SoftFever/Orca_tools/releases/download/1/TitanSlicer_profile_validator
+          chmod +x ./TitanSlicer_profile_validator
 
       # validate profiles
       - name: validate system profiles
@@ -48,7 +48,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -l 2 2>&1 | tee ${{ runner.temp }}/validate_system.log
+          ./TitanSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -l 2 2>&1 | tee ${{ runner.temp }}/validate_system.log
           exit ${PIPESTATUS[0]}
 
       - name: validate custom presets
@@ -57,9 +57,9 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           set +e
-          curl -LJO https://github.com/OrcaSlicer/OrcaSlicer/releases/download/nightly-builds/orca_custom_preset_tests.zip
+          curl -LJO https://github.com/TitanSlicer/TitanSlicer/releases/download/nightly-builds/orca_custom_preset_tests.zip
           unzip -q ./orca_custom_preset_tests.zip -d ${{ github.workspace }}/resources/profiles
-          ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -l 2 2>&1 | tee ${{ runner.temp }}/validate_custom.log
+          ./TitanSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -l 2 2>&1 | tee ${{ runner.temp }}/validate_custom.log
           exit ${PIPESTATUS[0]}
 
       - name: Post error comment on PR

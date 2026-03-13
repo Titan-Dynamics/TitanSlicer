@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=Bambu GCode viewer
-Exec=orca-slicer --gcodeviewer %F
-Icon=OrcaSlicer-gcodeviewer
+Name=Titan GCode viewer
+Exec=titan-slicer --gcodeviewer %F
+Icon=TitanSlicer-gcodeviewer
 Terminal=false
 Type=Application
 MimeType=text/x.gcode;

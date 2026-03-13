@@ -1,4 +1,4 @@
-@REM OrcaSlicer build script for Windows with VS auto-detect
+@REM TitanSlicer build script for Windows with VS auto-detect
 @echo off
 set WP=%CD%
 
@@ -70,9 +70,9 @@ if "%1"=="pack" (
     setlocal ENABLEDELAYEDEXPANSION 
     cd %WP%/deps/build
     for /f "tokens=2-4 delims=/ " %%a in ('date /t') do set build_date=%%c%%b%%a
-    echo packing deps: OrcaSlicer_dep_win64_!build_date!_vs!VS_VERSION!.zip
+    echo packing deps: TitanSlicer_dep_win64_!build_date!_vs!VS_VERSION!.zip
 
-    %WP%/tools/7z.exe a OrcaSlicer_dep_win64_!build_date!_vs!VS_VERSION!.zip OrcaSlicer_dep
+    %WP%/tools/7z.exe a TitanSlicer_dep_win64_!build_date!_vs!VS_VERSION!.zip TitanSlicer_dep
     exit /b 0
 )
 
@@ -129,7 +129,7 @@ mkdir %build_dir%
 cd %build_dir%
 
 @REM Force GMP/MPFR to use deps build libraries (avoid Strawberry Perl conflict)
-set "DEP_DIR=%WP%\deps\build\OrcaSlicer_dep\usr\local"
+set "DEP_DIR=%WP%\deps\build\TitanSlicer_dep\usr\local"
 set "GMP_MPFR_FLAGS=-DGMP_INCLUDE_DIR=%DEP_DIR%\include -DGMP_LIBRARY_RELEASE=%DEP_DIR%\lib\libgmp-10.lib -DGMP_LIBRARY_DEBUG=%DEP_DIR%\lib\libgmp-10.lib -DMPFR_INCLUDE_DIR=%DEP_DIR%\include -DMPFR_LIBRARIES=%DEP_DIR%\lib\libmpfr-4.lib -DMPFR_LIBRARIES_DIR=%DEP_DIR%\lib"
 
 echo on
