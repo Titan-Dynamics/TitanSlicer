@@ -356,9 +356,15 @@ public:
 		int height = bmp.GetHeight();
 
 		// Logo
-        BitmapCache bmp_cache;
-        wxBitmap logo_bmp = *bmp_cache.load_svg(is_dark ? "splash_logo_dark" : "splash_logo", width, height);  // use with full width & height
-        memDc.DrawBitmap(logo_bmp, 0, 0, true);
+        wxBitmap logo_bmp;
+        wxString logo_path = from_u8(Slic3r::var("splash_td.png"));
+        wxImage logo_img(logo_path, wxBITMAP_TYPE_PNG);
+        if (logo_img.IsOk()) {
+            logo_img.Rescale(width, height, wxIMAGE_QUALITY_HIGH);
+            logo_bmp = wxBitmap(logo_img);
+        }
+        if (logo_bmp.IsOk())
+            memDc.DrawBitmap(logo_bmp, 0, 0, true);
 
         // Version
         memDc.SetFont(m_constant_text.version_font);

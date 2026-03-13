@@ -17707,7 +17707,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         // set the plate type
         ret = select_plate(plate_index);
         if (!ret) {
-            PlateNameEditDialog dlg(this, wxID_ANY, _L("Edit Plate Name"));
+            PlateNameEditDialog dlg(this, wxID_ANY, _L("Edit Plate"));
             PartPlate *         curr_plate = p->partplate_list.get_curr_plate();
 
             wxString curr_plate_name = from_u8(curr_plate->get_plate_name());
