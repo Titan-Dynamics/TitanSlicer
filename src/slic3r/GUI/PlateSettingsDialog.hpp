@@ -188,8 +188,16 @@ public:
     wxString get_plate_name() const;
     void     set_plate_name(const wxString &name);
 
+    wxString get_filament_preset() const;
+    void     set_filament_preset(const wxString &name);
+    wxString get_process_preset() const;
+    void     set_process_preset(const wxString &name);
+
 protected:
+    bool validate_presets() const;
     TextInput *m_ti_plate_name;
+    ComboBox  *m_filament_preset_choice;
+    ComboBox  *m_process_preset_choice;
 };
 }} // namespace Slic3r::GUI
 

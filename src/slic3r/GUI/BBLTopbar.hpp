@@ -56,6 +56,9 @@ public:
 
     void ShowCalibrationButton(bool show = true);
 
+    void SetProductionReady(bool ready);
+    bool GetProductionReady() const;
+
 protected:
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
@@ -79,6 +82,11 @@ private:
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* m_calib_item;
     wxAuiToolBarItem* maximize_btn;
+
+    wxAuiToolBarItem*     m_production_ready_toggle_item{nullptr};
+    bool                  m_production_ready{false};
+    wxBitmap              m_toggle_on_bitmap;
+    wxBitmap              m_toggle_off_bitmap;
 
     wxBitmap m_publish_bitmap;
     wxBitmap m_publish_disable_bitmap;

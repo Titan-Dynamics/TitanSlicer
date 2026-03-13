@@ -11690,6 +11690,13 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     p->camera.requires_zoom_to_bed = true;
     enable_sidebar(!m_only_gcode);
 
+    // Reset Production Ready toggle for new project
+    {
+        auto* topbar = wxGetApp().mainframe->topbar();
+        if (topbar)
+            topbar->SetProductionReady(false);
+    }
+
     up_to_date(true, false);
     up_to_date(true, true);
     return wxID_YES;
@@ -11825,6 +11832,18 @@ void Plater::load_project(wxString const& filename2,
     auto       has_modify = is_flush_config_modified();
     sidebar().set_flushing_volume_warning(has_modify);
 
+    // Update Production Ready toggle from loaded project config
+    {
+        auto* preset_bundle = wxGetApp().preset_bundle;
+        if (preset_bundle) {
+            auto* opt = preset_bundle->project_config.option<ConfigOptionBool>("production_ready");
+            bool production_ready = opt ? opt->value : false;
+            auto* topbar = wxGetApp().mainframe->topbar();
+            if (topbar)
+                topbar->SetProductionReady(production_ready);
+        }
+    }
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " load project done";
     m_loading_project = false;
 }
@@ -11843,6 +11862,25 @@ int Plater::save_project(bool saveAs)
         return wxID_NO;
     if (filename == "<cancel>")
         return wxID_CANCEL;
+
+    // Production Ready save protection
+    {
+        auto* preset_bundle = wxGetApp().preset_bundle;
+        if (preset_bundle) {
+            auto* opt = preset_bundle->project_config.option<ConfigOptionBool>("production_ready");
+            if (opt && opt->value) {
+                MessageDialog dlg(this,
+                    _L("WARNING: This project is marked as PRODUCTION READY!\n\n"
+                       "Saving will overwrite the production-ready file. "
+                       "Any changes you made could affect production output.\n\n"
+                       "Are you absolutely sure you want to save?"),
+                    _L("Production Ready - Confirm Save"),
+                    wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTRE);
+                if (dlg.ShowModal() != wxID_YES)
+                    return wxID_CANCEL;
+            }
+        }
+    }
 
     //BBS export 3mf without gcode
     auto save_strategy = SaveStrategy::SplitModel | SaveStrategy::ShareMesh;
@@ -14172,6 +14210,19 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
         if (second_check && !second_check(false)) return wxID_CANCEL;
         model().set_backup_path("");
         return wxID_NO;
+    }
+
+    // Production Ready projects should close without prompting to save
+    {
+        auto* preset_bundle = wxGetApp().preset_bundle;
+        if (preset_bundle) {
+            auto* opt = preset_bundle->project_config.option<ConfigOptionBool>("production_ready");
+            if (opt && opt->value) {
+                if (second_check && !second_check(false)) return wxID_CANCEL;
+                model().set_backup_path("");
+                return wxID_NO;
+            }
+        }
     }
 
     MessageDialog dlg(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
@@ -17023,6 +17074,37 @@ int Plater::select_plate(int plate_index, bool need_slice)
         p->update_print_volume_state();
 
         PartPlate* part_plate = p->partplate_list.get_curr_plate();
+
+        // TitanSlicer: auto-select filament/process presets associated with this plate
+        {
+            std::vector<std::string> missing;
+            std::string filament_preset = part_plate->get_filament_preset();
+            if (!filament_preset.empty()) {
+                auto& filaments = wxGetApp().preset_bundle->filaments;
+                if (filaments.find_preset(filament_preset, false) != nullptr) {
+                    auto* tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT);
+                    if (tab) tab->select_preset(filament_preset);
+                } else {
+                    missing.push_back("Filament: " + filament_preset);
+                }
+            }
+            std::string process_preset = part_plate->get_process_preset();
+            if (!process_preset.empty()) {
+                auto& prints = wxGetApp().preset_bundle->prints;
+                if (prints.find_preset(process_preset, false) != nullptr) {
+                    auto* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+                    if (tab) tab->select_preset(process_preset);
+                } else {
+                    missing.push_back("Process: " + process_preset);
+                }
+            }
+            if (!missing.empty()) {
+                std::string msg = "The following presets assigned to this plate were not found:\n\n";
+                for (auto& m : missing) msg += "  - " + m + "\n";
+                msg += "\nThe plate will keep these assignments, but they could not be selected.";
+                wxMessageBox(from_u8(msg), _L("Missing Presets"), wxOK | wxICON_WARNING);
+            }
+        }
         bool result_valid = part_plate->is_slice_result_valid();
         PrintBase* print = nullptr;
         GCodeResult* gcode_result = nullptr;
@@ -17444,6 +17526,38 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             p->update_print_volume_state();
 
             PartPlate* part_plate = p->partplate_list.get_curr_plate();
+
+            // TitanSlicer: auto-select filament/process presets associated with this plate
+            {
+                std::vector<std::string> missing;
+                std::string filament_preset = part_plate->get_filament_preset();
+                if (!filament_preset.empty()) {
+                    auto& filaments = wxGetApp().preset_bundle->filaments;
+                    if (filaments.find_preset(filament_preset, false) != nullptr) {
+                        auto* tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT);
+                        if (tab) tab->select_preset(filament_preset);
+                    } else {
+                        missing.push_back("Filament: " + filament_preset);
+                    }
+                }
+                std::string process_preset = part_plate->get_process_preset();
+                if (!process_preset.empty()) {
+                    auto& prints = wxGetApp().preset_bundle->prints;
+                    if (prints.find_preset(process_preset, false) != nullptr) {
+                        auto* tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+                        if (tab) tab->select_preset(process_preset);
+                    } else {
+                        missing.push_back("Process: " + process_preset);
+                    }
+                }
+                if (!missing.empty()) {
+                    std::string msg = "The following presets assigned to this plate were not found:\n\n";
+                    for (auto& m : missing) msg += "  - " + m + "\n";
+                    msg += "\nThe plate will keep these assignments, but they could not be selected.";
+                    wxMessageBox(from_u8(msg), _L("Missing Presets"), wxOK | wxICON_WARNING);
+                }
+            }
+
             bool result_valid = part_plate->is_slice_result_valid();
             PrintBase* print = nullptr;
             GCodeResult* gcode_result = nullptr;
@@ -17598,11 +17712,16 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
 
             wxString curr_plate_name = from_u8(curr_plate->get_plate_name());
             dlg.set_plate_name(curr_plate_name);
+            dlg.set_filament_preset(from_u8(curr_plate->get_filament_preset()));
+            dlg.set_process_preset(from_u8(curr_plate->get_process_preset()));
 
             int result=dlg.ShowModal();
             if (result == wxID_YES) {
                 wxString dlg_plate_name = dlg.get_plate_name();
                 curr_plate->set_plate_name(dlg_plate_name.ToUTF8().data());
+                curr_plate->set_filament_preset(dlg.get_filament_preset().ToUTF8().data());
+                curr_plate->set_process_preset(dlg.get_process_preset().ToUTF8().data());
+                set_plater_dirty(true);
             }
         } else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;

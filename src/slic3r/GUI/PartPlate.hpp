@@ -161,6 +161,9 @@ private:
     // SoftFever
     // part plate name
     std::string m_name;
+    // TitanSlicer: per-plate preset associations
+    std::string m_filament_preset;
+    std::string m_process_preset;
     GLModel m_plate_name_icon;
     GLTexture m_name_texture;
     wxCoord m_name_texture_width;
@@ -298,6 +301,12 @@ public:
     void generate_plate_name_texture();
     //set the plate's name
     void set_plate_name(const std::string& name);
+
+    // TitanSlicer: per-plate preset associations
+    std::string get_filament_preset() const { return m_filament_preset; }
+    void set_filament_preset(const std::string& preset);
+    std::string get_process_preset() const { return m_process_preset; }
+    void set_process_preset(const std::string& preset);
 
     void set_timelapse_warning_code(int code) { m_timelapse_warning_code = code; }
     int  timelapse_warning_code() { return m_timelapse_warning_code; }
@@ -526,6 +535,8 @@ public:
         std::vector<std::pair<int, int>>	instances_outside;
 
         ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
+        // TitanSlicer: load per-plate preset associations (backward compatible)
+        try { ar(m_filament_preset, m_process_preset); } catch (...) { m_filament_preset.clear(); m_process_preset.clear(); }
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -544,6 +555,8 @@ public:
             objects_and_instances.emplace_back(it->first, it->second);
 
         ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
+        // TitanSlicer: save per-plate preset associations
+        ar(m_filament_preset, m_process_preset);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
