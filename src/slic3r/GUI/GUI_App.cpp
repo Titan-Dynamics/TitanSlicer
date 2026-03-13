@@ -6498,18 +6498,18 @@ Tab* GUI_App::get_layer_tab()
 ConfigOptionMode GUI_App::get_mode()
 {
     if (!app_config->has("user_mode"))
-        return comSimple;
+        return comAdvanced;
     //BBS
     const auto mode = app_config->get("user_mode");
     return mode == "advanced" ? comAdvanced :
            mode == "simple" ? comSimple :
-           mode == "develop" ? comDevelop : comSimple;
+           mode == "develop" ? comDevelop : comAdvanced;
 }
 
 std::string GUI_App::get_mode_str()
 {
     if (!app_config->has("user_mode"))
-        return "simple";
+        return "advanced";
     return app_config->get("user_mode");
 }
 

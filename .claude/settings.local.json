@@ -9,7 +9,17 @@
       "Bash(grep -r \"GMP\\\\|MPFR\" \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/CGAL/cgal/\" --include=\"*.cmake\" 2>/dev/null | head -20)",
       "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep\" -name \"*.cmake\" 2>/dev/null | grep -i cgal | head -10)",
       "Bash(ls \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/lib/\"*gmp* \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/lib/\"*mpfr* 2>&1)",
-      "Bash(ls \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*gmp* \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*mpfr* 2>&1)"
+      "Bash(ls \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*gmp* \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*mpfr* 2>&1)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src -name \"*.rc\" -o -name \"*.manifest\" 2>/dev/null | head -20)",
+      "Bash(grep -r \"IDI_\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src --include=\"*.cpp\" --include=\"*.h\" --include=\"*.hpp\" 2>/dev/null | head -5)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images -name \"*Orca*\" -o -name \"*Icon*\" 2>/dev/null | sort)",
+      "Bash(ls -la /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/Icon* 2>/dev/null)",
+      "Bash(ls -la /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/OrcaSlicer* | head -30)",
+      "Bash(grep -r \"OrcaSlicer.*\\\\.png\\\\|OrcaSlicer.*\\\\.ico\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src --include=\"*.cpp\" --include=\"*.h\" 2>/dev/null | head -10)",
+      "Bash(grep -r \"RC_ICON\\\\|IDI_ICON\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src --include=\"*.cpp\" --include=\"*.h\" --include=\"*.hpp\" 2>/dev/null | head -5)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images -name \"OrcaSlicer*\" -type f 2>/dev/null | sort)",
+      "Bash(grep -r \"OrcaSlicer.desktop\\\\|icon.*theme\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer --include=\"*.cpp\" --include=\"CMakeLists.txt\" 2>/dev/null | head -10)",
+      "Bash(ls -lh /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/splash* 2>/dev/null)"
     ]
   }
 }
