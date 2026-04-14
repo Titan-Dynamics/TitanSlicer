@@ -32,13 +32,14 @@
 #endif // ENABLE_ACTUAL_SPEED_DEBUG
 #include <imgui/imgui_internal.h>
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <wx/progdlg.h>
 #include <wx/numformatter.h>
+#include <wx/utils.h>
 
 #include <array>
 #include <algorithm>

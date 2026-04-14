@@ -187,6 +187,12 @@ static t_config_enum_values s_keys_map_NoiseType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
 
+static t_config_enum_values s_keys_map_WipeTowerType {
+    { "type1",          int(WipeTowerType::Type1) },
+    { "type2",          int(WipeTowerType::Type2) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WipeTowerType)
+
 static t_config_enum_values s_keys_map_FuzzySkinMode {
     { "displacement",   int(FuzzySkinMode::Displacement) },
     { "extrusion",      int(FuzzySkinMode::Extrusion) },
@@ -256,7 +262,6 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
 
 //Orca
 static t_config_enum_values s_keys_map_WallDirection{
-    { "auto", int(WallDirection::Auto) },
     { "ccw",  int(WallDirection::CounterClockwise) },
     { "cw",   int(WallDirection::Clockwise)},
 };
@@ -1594,6 +1599,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("combine_brims", coBool);
+    def->label = L("Combine brims");
+    def->category = L("Support");
+    def->tooltip  = L("Combine multiple brims into one when they are close to each other. This can improve brim adhesion.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("brim_ears", coBool);
     def->label = L("Brim ears");
     def->category = L("Support");
@@ -2019,16 +2031,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wall_direction", coEnum);
     def->label = L("Wall loop direction");
     def->category = L("Quality");
-    def->tooltip = L("The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on even is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on even.\n\nThis option will be disabled if spiral vase mode is enabled.");
+    def->tooltip = L("The direction which the contour wall loops are extruded when looking down from the top.\nHoles are printed in the opposite direction to the contour to maintain alignment with layers whose contour polygons are incomplete and change direction, also partially forming the contour of a hole.\n\nThis option will be disabled if spiral vase mode is enabled.");
     def->enum_keys_map = &ConfigOptionEnum<WallDirection>::get_enum_values();
-    def->enum_values.push_back("auto");
     def->enum_values.push_back("ccw");
     def->enum_values.push_back("cw");
-    def->enum_labels.push_back(L("Auto"));
     def->enum_labels.push_back(L("Counter clockwise"));
     def->enum_labels.push_back(L("Clockwise"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<WallDirection>(WallDirection::Auto));
+    def->set_default_value(new ConfigOptionEnum<WallDirection>(WallDirection::CounterClockwise));
 
     def = this->add("extruder", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
@@ -3979,7 +3989,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("No ironing"));
     def->enum_labels.push_back(L("Top surfaces"));
     def->enum_labels.push_back(L("Topmost surface"));
-    def->enum_labels.push_back(L("All solid layer"));
+    def->enum_labels.push_back(L("All solid layers"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
 
@@ -4561,7 +4571,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("detect_overhang_wall", coBool);
-    def->label = L("Detect overhang wall");
+    def->label = L("Detect overhang walls");
     def->category = L("Quality");
     def->tooltip = L("Detect the overhang percentage relative to line width and use different speed to print. "
                      "For 100%% overhang, bridge speed is used.");
@@ -5311,7 +5321,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("minimum_sparse_infill_area", coFloat);
     def->label = L("Minimum sparse infill threshold");
     def->category = L("Strength");
-    def->tooltip = L("Sparse infill area which is smaller than threshold value is replaced by internal solid infill.");
+    def->tooltip = L("Sparse infill areas smaller than this threshold value are replaced by internal solid infill.");
     def->sidetext = L(u8"mm²");	// square milimeters, CIS languages need translation
     def->min = 0;
     def->mode = comAdvanced;
@@ -5489,6 +5499,17 @@ void PrintConfigDef::init_fff_params()
                     "This is useful for manual multi-material printing, where we use M600/PAUSE to trigger the manual filament change action.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("wipe_tower_type", coEnum);
+    def->label = L("Wipe tower type");
+    def->tooltip = L("Choose the wipe tower implementation for multi-material prints. Type 1 is recommended for Bambu and Qidi printers with a filament cutter. Type 2 offers better compatibility with multi-tool and MMU printers and provide overall better compatibility.");
+    def->enum_keys_map = &ConfigOptionEnum<WipeTowerType>::get_enum_values();
+    def->enum_values.emplace_back("type1");
+    def->enum_values.emplace_back("type2");
+    def->enum_labels.emplace_back(L("Type 1"));
+    def->enum_labels.emplace_back(L("Type 2"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<WipeTowerType>(WipeTowerType::Type2));
 
     def = this->add("purge_in_prime_tower", coBool);
     def->label = L("Purge in prime tower");
@@ -6152,10 +6173,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPoints{});
 
     def = this->add("detect_thin_wall", coBool);
-    def->label = L("Detect thin wall");
+    def->label = L("Detect thin walls");
     def->category = L("Strength");
-    def->tooltip = L("Detect thin wall which can't contain two line width. And use single line to print. "
-                     "Maybe printed not very well, because it's not closed loop.");
+    def->tooltip = L("Detect thin walls which can't contain two line widths, and use single line to print. "
+                     "Maybe not printed very well, because it's not a closed loop.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -6766,7 +6787,7 @@ void PrintConfigDef::init_fff_params()
     }
 
     def = this->add("detect_narrow_internal_solid_infill", coBool);
-    def->label = L("Detect narrow internal solid infill");
+    def->label = L("Detect narrow internal solid infills");
     def->category = L("Strength");
     def->tooltip = L("This option will auto-detect narrow internal solid infill areas. "
                      "If enabled, the concentric pattern will be used for the area to speed up printing. "
@@ -7673,6 +7694,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "extruder_clearance_radius";
     } else if (opt_key == "machine_switch_extruder_time") {
         opt_key = "machine_tool_change_time";
+    }
+    else if (opt_key == "wall_direction" && value == "auto") {
+        value = "ccw";
     }
 
     // Ignore the following obsolete configuration keys:
@@ -9018,11 +9042,8 @@ void DynamicPrintConfig::update_values_to_printer_extruders(DynamicPrintConfig& 
                 //variant index
                 variant_index[e_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
                 if (variant_index[e_index] < 0) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, extruder_index %4%")
-                        %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (e_index+1);
-                    assert(false);
-                    //for some updates happens in a invalid state(caused by popup window)
-                    //we need to avoid crash
+                    // Orca: This is expected during transient UI states (e.g. popup windows),
+                    // fall back to 0 silently.
                     variant_index[e_index] = 0;
                 }
             }
