@@ -87,6 +87,8 @@ struct PlateData
     std::string     gcode_weight;
     std::string     first_layer_time;
     std::string     plate_name;
+    std::string     filament_preset;
+    std::string     process_preset;
     std::vector<FilamentInfo> slice_filaments_info;
     std::vector<size_t> skipped_objects;
     DynamicPrintConfig config;

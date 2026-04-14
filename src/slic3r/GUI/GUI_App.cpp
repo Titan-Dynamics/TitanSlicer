@@ -356,9 +356,15 @@ public:
 		int height = bmp.GetHeight();
 
 		// Logo
-        BitmapCache bmp_cache;
-        wxBitmap logo_bmp = *bmp_cache.load_svg(is_dark ? "splash_logo_dark" : "splash_logo", width, height);  // use with full width & height
-        memDc.DrawBitmap(logo_bmp, 0, 0, true);
+        wxBitmap logo_bmp;
+        wxString logo_path = from_u8(Slic3r::var("splash_td.png"));
+        wxImage logo_img(logo_path, wxBITMAP_TYPE_PNG);
+        if (logo_img.IsOk()) {
+            logo_img.Rescale(width, height, wxIMAGE_QUALITY_HIGH);
+            logo_bmp = wxBitmap(logo_img);
+        }
+        if (logo_bmp.IsOk())
+            memDc.DrawBitmap(logo_bmp, 0, 0, true);
 
         // Version
         memDc.SetFont(m_constant_text.version_font);
@@ -3664,14 +3670,14 @@ void GUI_App::init_label_colours()
 #if defined(_WIN32) || defined(__linux__) || defined(__APPLE__)
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
-    m_color_highlight_default       = is_dark_mode ? wxColour("#36363B") : wxColour("#F1F1F1"); // ORCA row highlighting
+    m_color_highlight_default       = is_dark_mode ? wxColour("#26262B") : wxColour("#F1F1F1"); // darkened row highlighting
     m_color_hovered_btn_label       = is_dark_mode ? wxColour(255, 255, 254) : wxColour(0,0,0);
     m_color_default_btn_label       = is_dark_mode ? wxColour(255, 255, 254): wxColour(0,0,0);
-    m_color_selected_btn_bg         = is_dark_mode ? wxColour(84, 84, 91)   : wxColour(206, 206, 206);
+    m_color_selected_btn_bg         = is_dark_mode ? wxColour(64, 64, 71)   : wxColour(206, 206, 206); // darkened
 #else
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 #endif
-    m_color_window_default          = is_dark_mode ? wxColour(43, 43, 43)   : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    m_color_window_default          = is_dark_mode ? wxColour(29, 29, 33)   : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW); // darkened
     StateColor::SetDarkMode(is_dark_mode);
 }
 
@@ -5310,6 +5316,11 @@ void maybe_attach_updater_signature(Http& http, const std::string& canonical_que
 
 void GUI_App::check_new_version_sf(bool show_tips, int by_user)
 {
+    // TitanSlicer: disable OrcaSlicer update checks
+    if (by_user != 0)
+        this->no_new_version();
+    return;
+
     AppConfig* app_config = wxGetApp().app_config;
     bool       check_stable_only = app_config->get_bool("check_stable_update_only");
     auto version_check_url = app_config->version_check_url();
@@ -6498,18 +6509,18 @@ Tab* GUI_App::get_layer_tab()
 ConfigOptionMode GUI_App::get_mode()
 {
     if (!app_config->has("user_mode"))
-        return comSimple;
+        return comAdvanced;
     //BBS
     const auto mode = app_config->get("user_mode");
     return mode == "advanced" ? comAdvanced :
            mode == "simple" ? comSimple :
-           mode == "develop" ? comDevelop : comSimple;
+           mode == "develop" ? comDevelop : comAdvanced;
 }
 
 std::string GUI_App::get_mode_str()
 {
     if (!app_config->has("user_mode"))
-        return "simple";
+        return "advanced";
     return app_config->get("user_mode");
 }
 

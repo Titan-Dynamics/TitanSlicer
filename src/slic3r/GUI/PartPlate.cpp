@@ -415,6 +415,19 @@ void PartPlate::calc_bounding_boxes() const {
 	m_grabber_box.defined = true;
 	extended_bounding_box->merge(m_grabber_box);
 
+	// Include plate name label area in extended bounding box so camera frustum doesn't clip it
+	{
+		auto bed_ext = get_extents(m_shape);
+		Vec2d label_p = bed_ext[3]; // top-left corner of bed
+		double factor = bed_ext.size()(1) / 200.0;
+		double label_height = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * 3.0; // matches 3x scale in generate_plate_name_texture
+		double label_offset_y = factor * PARTPLATE_TEXT_OFFSET_Y;
+		// Label extends rightward and upward from top-left corner; conservatively use full bed width
+		double label_width = bed_ext.size()(0);
+		extended_bounding_box->merge({ label_p(0), label_p(1) + label_offset_y + label_height, GROUND_Z });
+		extended_bounding_box->merge({ label_p(0) + label_width, label_p(1) + label_offset_y, GROUND_Z });
+	}
+
     //calc exclude area bounding box
     m_exclude_bounding_box.clear();
     BoundingBoxf3 exclude_bb;
@@ -631,14 +644,15 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
     Vec2d p        = bed_ext[3];
     float factor   = bed_ext.size()(1) / 200.0;
     float icon_sz  = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
+    float label_sz = icon_sz * 3.0f; // 3x scale matching label size
     float width    = icon_sz;
     float height   = icon_sz;
     float offset_y = factor * PARTPLATE_TEXT_OFFSET_Y;
 
     float name_width = 0.0;
     if (texture && texture->get_width() > 0 && texture->get_height())
-        // original width give correct ratio in here since rendering width can be much higher because of next_highest_power_of_2 for rendering
-        name_width = icon_sz * texture->m_original_width / texture->get_height(); 
+        // Use label_sz (2x) to match the larger label rendering
+        name_width = label_sz * texture->m_original_width / texture->get_height(); 
 
     //if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
     //    px = scale_(bed_ext.center()(0)) + m_name_texture_width * 0.50 - height * 0.50;
@@ -2292,27 +2306,122 @@ void PartPlate::generate_plate_name_texture()
 {
     m_plate_name_icon.reset();
 
-	// generate m_name_texture texture from m_name with generate_from_text_string
+	// generate m_name_texture texture from m_name
 	m_name_texture.reset();
-	auto text = m_name.empty()? _L("Untitled") : from_u8(m_name);
+	auto name_text = m_name.empty() ? _L("Untitled") : from_u8(m_name);
 
     // ORCA also scale font size to prevent low res texture
     int size = wxGetApp().em_unit() * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
-    auto l = Label::sysFont(size, true);
-    wxFont* font = &l;
+    auto name_font = Label::sysFont(size, true);
+    auto sub_font  = Label::sysFont(size * 3 / 4, false); // 75% of name size
 
-	wxColour foreground(0xf2, 0x75, 0x4e, 0xff);
-    if (!m_name_texture.generate_from_text_string(text.ToUTF8().data(), *font, *wxBLACK, foreground))
-		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
+    bool has_filament = !m_filament_preset.empty();
+    bool has_process  = !m_process_preset.empty();
+    wxString filament_text = has_filament ? from_u8(m_filament_preset) : wxString();
+    wxString process_text  = has_process  ? from_u8(m_process_preset)  : wxString();
+
+    wxMemoryDC memDC;
+
+    // Measure name line
+    memDC.SetFont(name_font);
+    wxCoord name_w, name_h;
+    memDC.GetTextExtent(name_text, &name_w, &name_h);
+
+    // Always measure subtitle line height for consistent texture sizing
+    memDC.SetFont(sub_font);
+    wxCoord sub_line_h;
+    { wxCoord dw; memDC.GetTextExtent(wxT("Xg"), &dw, &sub_line_h); }
+
+    wxCoord fil_w = 0, fil_h = 0, proc_w = 0, proc_h = 0;
+    if (has_filament)
+        memDC.GetTextExtent(filament_text, &fil_w, &fil_h);
+    if (has_process)
+        memDC.GetTextExtent(process_text, &proc_w, &proc_h);
+
+    // Always allocate space for name + 2 subtitle lines so name size stays consistent
+    int total_w = std::max({(int)name_w, (int)fil_w, (int)proc_w});
+    int total_h = (int)name_h + 2 * (int)sub_line_h;
+
+    // Actual content height for bottom-alignment
+    int content_h = (int)name_h + (has_filament ? (int)fil_h : 0) + (has_process ? (int)proc_h : 0);
+
+    // Power-of-2 dimensions for GL
+    auto next_pow2 = [](unsigned int v) -> unsigned int {
+        v--;
+        v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16;
+        return v + 1;
+    };
+    int tex_w = (int)next_pow2((unsigned int)total_w);
+    int tex_h = (int)next_pow2((unsigned int)total_h);
+
+    // Render to bitmap - bottom-aligned (text drawn toward bottom of texture)
+    wxBitmap bitmap(tex_w, tex_h);
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(*wxBLACK));
+    memDC.Clear();
+
+    int text_start_y = total_h - content_h;
+    int y = text_start_y;
+
+    // Draw name in white (used as alpha mask, actual color applied per-pixel below)
+    memDC.SetFont(name_font);
+    memDC.SetTextForeground(*wxWHITE);
+    memDC.DrawText(name_text, 0, y);
+    int name_end_y = y + name_h;
+    y = name_end_y;
+
+    // Draw subtitle lines
+    if (has_filament || has_process)
+        memDC.SetFont(sub_font);
+    if (has_filament) {
+        memDC.DrawText(filament_text, 0, y);
+        y += fil_h;
+    }
+    if (has_process) {
+        memDC.DrawText(process_text, 0, y);
+    }
+
+    memDC.SelectObject(wxNullBitmap);
+
+    // Convert to RGBA with per-pixel coloring
+    wxImage image = bitmap.ConvertToImage();
+    wxColour name_color(0xf2, 0x75, 0x4e); // orange
+    wxColour sub_color(0xc4, 0xc4, 0xc4); // gray matching edit icon color
+
+    std::vector<unsigned char> data(4 * tex_w * tex_h, 0);
+    const unsigned char* src = image.GetData();
+    for (int row = 0; row < tex_h; ++row) {
+        unsigned char* dst = data.data() + 4 * row * tex_w;
+        // Color by region: name rows get orange, everything else gets gray (alpha=0 for empty rows anyway)
+        wxColour color = (row >= text_start_y && row < name_end_y) ? name_color : sub_color;
+        for (int col = 0; col < tex_w; ++col) {
+            *dst++ = color.Red();
+            *dst++ = color.Green();
+            *dst++ = color.Blue();
+            *dst++ = (unsigned char)std::min<int>(255, *src);
+            src += 3;
+        }
+    }
+
+    // Upload texture and store original dimensions
+    m_name_texture.m_original_width  = total_w;
+    m_name_texture.m_original_height = total_h;
+    m_name_texture.load_from_raw_data(std::move(data), tex_w, tex_h);
+
+    // Disable mipmaps to prevent fuzzy rendering at distance (matching generate_from_text behavior)
+    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_name_texture.get_id()));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     ExPolygon poly;
     auto  bed_ext  = get_extents(m_shape);
     Vec2d p        = bed_ext[3];
     float factor   = bed_ext.size()(1) / 200.0;
-    float icon_sz  = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
+    float icon_sz  = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * 3.0f; // 3x scale for readability
     float width    = icon_sz * m_name_texture.get_width() / m_name_texture.get_height(); // icon size * text_bb_ratio
     float height   = icon_sz; // scale with icon size to preserve ratio while system scaling
-    float offset_y = factor * PARTPLATE_TEXT_OFFSET_Y;
+    float offset_y = factor * PARTPLATE_TEXT_OFFSET_Y - icon_sz * 0.15f; // nudge down half a line
 
     //if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
     //    px = scale_(bed_ext.center()(0)) - (width + height) / 2.00;
@@ -2332,8 +2441,8 @@ void PartPlate::generate_plate_name_texture()
     calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
     register_model_for_picking(*canvas, m_plate_name_edit_icon, picking_id_component(6));
 }
-void PartPlate::set_plate_name(const std::string& name) 
-{ 
+void PartPlate::set_plate_name(const std::string& name)
+{
 	// compare if name equal to m_name, case sensitive
     if (boost::equals(m_name, name))
         return;
@@ -2343,6 +2452,22 @@ void PartPlate::set_plate_name(const std::string& name)
         m_print->set_plate_name(name);
 
 	generate_plate_name_texture();
+}
+
+void PartPlate::set_filament_preset(const std::string& preset)
+{
+    if (m_filament_preset == preset)
+        return;
+    m_filament_preset = preset;
+    generate_plate_name_texture();
+}
+
+void PartPlate::set_process_preset(const std::string& preset)
+{
+    if (m_process_preset == preset)
+        return;
+    m_process_preset = preset;
+    generate_plate_name_texture();
 }
 
 //get the print's object, result and index
@@ -5945,6 +6070,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		plate_data_item->locked = m_plate_list[i]->m_locked;
 		plate_data_item->plate_index = m_plate_list[i]->m_plate_index;
 		plate_data_item->plate_name  = m_plate_list[i]->get_plate_name();
+		plate_data_item->filament_preset = m_plate_list[i]->get_filament_preset();
+		plate_data_item->process_preset  = m_plate_list[i]->get_process_preset();
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% before load, width %2%, height %3%, size %4%!")
 			%(i+1) %m_plate_list[i]->thumbnail_data.width %m_plate_list[i]->thumbnail_data.height %m_plate_list[i]->thumbnail_data.pixels.size();
 		plate_data_item->plate_thumbnail.load_from(m_plate_list[i]->thumbnail_data);
@@ -6033,6 +6160,8 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->m_locked = plate_data_list[i]->locked;
 		m_plate_list[index]->config()->apply(plate_data_list[i]->config);
 		m_plate_list[index]->set_plate_name(plate_data_list[i]->plate_name);
+		m_plate_list[index]->set_filament_preset(plate_data_list[i]->filament_preset);
+		m_plate_list[index]->set_process_preset(plate_data_list[i]->process_preset);
 		if (plate_data_list[i]->plate_index != index)
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;

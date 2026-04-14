@@ -1,4 +1,5 @@
 #include "BBLTopbar.hpp"
+#include "MsgDialog.hpp"
 #include "wx/artprov.h"
 #include "wx/aui/framemanager.h"
 #include "wx/display.h"
@@ -32,6 +33,7 @@ enum CUSTOM_ID
     ID_MODEL_STORE,
     ID_PUBLISH,
     ID_CALIB,
+    ID_PRODUCTION_READY_TOGGLE,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
 };
@@ -74,7 +76,7 @@ void BBLTopbarArt::DrawLabel(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& it
 
 void BBLTopbarArt::DrawBackground(wxDC& dc, wxWindow* wnd, const wxRect& rect)
 {
-    dc.SetBrush(wxBrush(wxColour(38, 46, 48)));
+    dc.SetBrush(wxBrush(wxColour(29, 29, 33))); // darkened to match theme
     wxRect clipRect = rect;
     clipRect.y -= 8;
     clipRect.height += 8;
@@ -257,6 +259,13 @@ void BBLTopbar::Init(wxFrame* parent)
     m_calib_item                   = this->AddTool(ID_CALIB, _L("Calibration"), calib_bitmap);
     m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
 
+    this->AddSpacer(FromDIP(4));
+
+    // Production Ready toggle with label
+    m_toggle_on_bitmap = create_scaled_bitmap("toggle_on", nullptr, TOPBAR_ICON_SIZE);
+    m_toggle_off_bitmap = create_scaled_bitmap("toggle_off", nullptr, TOPBAR_ICON_SIZE);
+    m_production_ready_toggle_item = this->AddTool(ID_PRODUCTION_READY_TOGGLE, _L("Production Ready"), m_toggle_off_bitmap);
+
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
 
@@ -325,6 +334,30 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, [this](wxAuiToolBarEvent& evt) {
+        bool new_state = !m_production_ready;
+        // Confirm when unmarking as production ready
+        if (!new_state) {
+            MessageDialog dlg(this,
+                _L("Are you sure you want to remove the Production Ready status from this project?"),
+                _L("Confirm Status Change"),
+                wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION | wxCENTRE);
+            if (dlg.ShowModal() != wxID_YES)
+                return;
+        }
+        m_production_ready = new_state;
+        m_production_ready_toggle_item->SetBitmap(m_production_ready ? m_toggle_on_bitmap : m_toggle_off_bitmap);
+        this->Refresh();
+        // Update project config
+        MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
+        if (main_frame && main_frame->plater()) {
+            auto* preset_bundle = wxGetApp().preset_bundle;
+            if (preset_bundle) {
+                preset_bundle->project_config.set_key_value("production_ready", new ConfigOptionBool(m_production_ready));
+            }
+            main_frame->plater()->set_plater_dirty(true);
+        }
+    }, ID_PRODUCTION_READY_TOGGLE);
 }
 
 BBLTopbar::~BBLTopbar()
@@ -396,6 +429,20 @@ void BBLTopbar::ShowCalibrationButton(bool show)
     if (!show)
         m_calib_item->GetSizerItem()->SetDimension({-1000, 0}, {0, 0});
     Refresh();
+}
+
+void BBLTopbar::SetProductionReady(bool ready)
+{
+    m_production_ready = ready;
+    if (m_production_ready_toggle_item) {
+        m_production_ready_toggle_item->SetBitmap(ready ? m_toggle_on_bitmap : m_toggle_off_bitmap);
+        this->Refresh();
+    }
+}
+
+bool BBLTopbar::GetProductionReady() const
+{
+    return m_production_ready;
 }
 
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)

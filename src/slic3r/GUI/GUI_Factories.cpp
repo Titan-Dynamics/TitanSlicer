@@ -2210,7 +2210,7 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
 
 void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
 {
-    wxString name= _L("Edit Plate Name");
+    wxString name= _L("Edit Plate");
     // Delete old menu item
     const int item_id = menu->FindItem(name);
     if (item_id != wxNOT_FOUND) menu->Destroy(item_id);

@@ -660,6 +660,7 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
     plate_name_txt->SetFont(Label::Body_14);
     m_ti_plate_name = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, wxSize(FromDIP(240), -1), wxTE_PROCESS_ENTER);
     m_ti_plate_name->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
+        if (!validate_presets()) return;
         if (this->IsModal())
             EndModal(wxID_YES);
         else
@@ -669,11 +670,46 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
     top_sizer->Add(m_ti_plate_name, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
     m_ti_plate_name->GetTextCtrl()->SetMaxLength(250);
 
+    // TitanSlicer: Filament preset dropdown
+    auto filament_txt = new wxStaticText(this, wxID_ANY, _L("Filament"));
+    filament_txt->SetFont(Label::Body_14);
+    m_filament_preset_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0, NULL, wxCB_READONLY);
+    m_filament_preset_choice->Append(_L("(None)"));
+    {
+        auto* preset_bundle = wxGetApp().preset_bundle;
+        for (const auto& preset : preset_bundle->filaments) {
+            if (!preset.is_visible || !preset.is_compatible)
+                continue;
+            m_filament_preset_choice->Append(from_u8(preset.name));
+        }
+    }
+    m_filament_preset_choice->SetSelection(0);
+    top_sizer->Add(filament_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_filament_preset_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+    // TitanSlicer: Process preset dropdown
+    auto process_txt = new wxStaticText(this, wxID_ANY, _L("Process"));
+    process_txt->SetFont(Label::Body_14);
+    m_process_preset_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0, NULL, wxCB_READONLY);
+    m_process_preset_choice->Append(_L("(None)"));
+    {
+        auto* preset_bundle = wxGetApp().preset_bundle;
+        for (const auto& preset : preset_bundle->prints) {
+            if (!preset.is_visible || !preset.is_compatible)
+                continue;
+            m_process_preset_choice->Append(from_u8(preset.name));
+        }
+    }
+    m_process_preset_choice->SetSelection(0);
+    top_sizer->Add(process_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_process_preset_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
 
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
 
     dlg_btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        if (!validate_presets()) return;
         if (this->IsModal())
             EndModal(wxID_YES);
         else
@@ -711,6 +747,68 @@ void PlateNameEditDialog::set_plate_name(const wxString &name) {
     m_ti_plate_name->GetTextCtrl()->SetValue(name);
     m_ti_plate_name->GetTextCtrl()->SetFocus();
     m_ti_plate_name->GetTextCtrl()->SetInsertionPointEnd();
+}
+
+bool PlateNameEditDialog::validate_presets() const {
+    bool has_filament = m_filament_preset_choice->GetSelection() > 0;
+    bool has_process  = m_process_preset_choice->GetSelection() > 0;
+    if (has_filament != has_process) {
+        wxMessageBox(_L("Both Filament and Process must be set, or neither."), _L("Validation"), wxOK | wxICON_WARNING);
+        return false;
+    }
+    return true;
+}
+
+wxString PlateNameEditDialog::get_filament_preset() const {
+    int sel = m_filament_preset_choice->GetSelection();
+    if (sel <= 0) return wxEmptyString; // (None) or no selection
+    wxString val = m_filament_preset_choice->GetString(sel);
+    // Strip "(not found)" suffix if present
+    wxString suffix = _L(" (not found)");
+    if (val.EndsWith(suffix))
+        val = val.Left(val.Length() - suffix.Length());
+    return val;
+}
+
+void PlateNameEditDialog::set_filament_preset(const wxString &name) {
+    if (name.IsEmpty()) {
+        m_filament_preset_choice->SetSelection(0);
+        return;
+    }
+    int idx = m_filament_preset_choice->FindString(name);
+    if (idx != wxNOT_FOUND) {
+        m_filament_preset_choice->SetSelection(idx);
+    } else {
+        wxString missing_label = name + _L(" (not found)");
+        m_filament_preset_choice->Append(missing_label);
+        m_filament_preset_choice->SetSelection(m_filament_preset_choice->GetCount() - 1);
+    }
+}
+
+wxString PlateNameEditDialog::get_process_preset() const {
+    int sel = m_process_preset_choice->GetSelection();
+    if (sel <= 0) return wxEmptyString;
+    wxString val = m_process_preset_choice->GetString(sel);
+    // Strip "(not found)" suffix if present
+    wxString suffix = _L(" (not found)");
+    if (val.EndsWith(suffix))
+        val = val.Left(val.Length() - suffix.Length());
+    return val;
+}
+
+void PlateNameEditDialog::set_process_preset(const wxString &name) {
+    if (name.IsEmpty()) {
+        m_process_preset_choice->SetSelection(0);
+        return;
+    }
+    int idx = m_process_preset_choice->FindString(name);
+    if (idx != wxNOT_FOUND) {
+        m_process_preset_choice->SetSelection(idx);
+    } else {
+        wxString missing_label = name + _L(" (not found)");
+        m_process_preset_choice->Append(missing_label);
+        m_process_preset_choice->SetSelection(m_process_preset_choice->GetCount() - 1);
+    }
 }
 
 

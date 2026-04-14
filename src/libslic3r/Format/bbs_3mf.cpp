@@ -309,6 +309,8 @@ static constexpr const char* INSTANCEID_ATTR = "instance_id";
 static constexpr const char* IDENTIFYID_ATTR = "identify_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
 static constexpr const char* PLATER_NAME_ATTR = "plater_name";
+static constexpr const char* FILAMENT_PRESET_ATTR = "filament_preset";
+static constexpr const char* PROCESS_PRESET_ATTR = "process_preset";
 static constexpr const char* PLATE_IDX_ATTR = "index";
 static constexpr const char* PRINTER_MODEL_ID_ATTR = "printer_model_id";
 static constexpr const char* EXTRUDER_TYPE_ATTR = "extruder_type";
@@ -2164,6 +2166,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->locked = it->second->locked;
             plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
             plate_data_list[it->first-1]->plate_name = it->second->plate_name;
+            plate_data_list[it->first-1]->filament_preset = it->second->filament_preset;
+            plate_data_list[it->first-1]->process_preset = it->second->process_preset;
             plate_data_list[it->first-1]->obj_inst_map = it->second->obj_inst_map;
             plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : m_backup_path + "/" + it->second->gcode_file;
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
@@ -4207,6 +4211,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             else if (key == PLATER_NAME_ATTR) {
                 m_curr_plater->plate_name = xml_unescape(value.c_str());
+            }
+            else if (key == FILAMENT_PRESET_ATTR) {
+                m_curr_plater->filament_preset = xml_unescape(value.c_str());
+            }
+            else if (key == PROCESS_PRESET_ATTR) {
+                m_curr_plater->process_preset = xml_unescape(value.c_str());
             }
             else if (key == LOCK_ATTR)
             {
@@ -7675,6 +7685,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATER_NAME_ATTR << "\" " << VALUE_ATTR << "=\"" <<  xml_escape(plate_data->plate_name.c_str()) << "\"/>\n";
+                if (!plate_data->filament_preset.empty())
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_PRESET_ATTR << "\" " << VALUE_ATTR << "=\"" << xml_escape(plate_data->filament_preset.c_str()) << "\"/>\n";
+                if (!plate_data->process_preset.empty())
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PROCESS_PRESET_ATTR << "\" " << VALUE_ATTR << "=\"" << xml_escape(plate_data->process_preset.c_str()) << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
                 ConfigOption* bed_type_opt = plate_data->config.option("curr_bed_type");
                 t_config_enum_names bed_type_names = ConfigOptionEnum<BedType>::get_enum_names();

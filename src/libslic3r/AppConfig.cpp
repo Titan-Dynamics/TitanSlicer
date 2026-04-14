@@ -39,8 +39,9 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL = "https://check-version.orcaslicer.com/latest";
-static const std::string PROFILE_UPDATE_URL = "https://api.github.com/repos/OrcaSlicer/orcaslicer-profiles/releases/tags";
+// TitanSlicer: disable OrcaSlicer update checks
+static const std::string VERSION_CHECK_URL = "";
+static const std::string PROFILE_UPDATE_URL = "";
 static const std::string MODELS_STR = "models";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
@@ -275,7 +276,7 @@ void AppConfig::set_defaults()
 
 #ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())
-        set("dark_color_mode", "0");
+        set("dark_color_mode", "1");
 #endif
 
 //#ifdef SUPPORT_SYS_MENU
@@ -531,6 +532,13 @@ void AppConfig::set_defaults()
     erase("app", "object_settings_pos");
     erase("app", "object_settings_size");
     erase("app", "severity_level");
+
+    // TitanSlicer edition migration: runs once when upgrading from OrcaSlicer
+    if (get("td_edition").empty()) {
+        set_bool("td_edition", true);
+        // Force dark mode
+        set("dark_color_mode", "1");
+    }
 }
 
 #ifdef WIN32

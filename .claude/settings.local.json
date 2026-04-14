@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where msbuild:*)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build\" -name \"*gmp*\" -o -name \"*mpfr*\" 2>/dev/null | head -40)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep\" -type f \\\\\\( -name \"*.lib\" -o -name \"*.dll\" -o -name \"*.a\" \\\\\\) 2>/dev/null | grep -i \"gmp\\\\|mpfr\")",
+      "Bash(grep -r \"gmp\\\\|mpfr\\\\|GMP\\\\|MPFR\" \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/CGAL/\" --include=\"*.cmake\" 2>/dev/null | head -30)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/CGAL\" -name \"FindGMP*\" -o -name \"FindMPFR*\" -o -name \"*GMP*\" -o -name \"*MPFR*\" 2>/dev/null | grep -E \"\\\\.\\(cmake|txt\\)$\")",
+      "Bash(grep -r \"GMP\\\\|MPFR\" \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/CGAL/cgal/\" --include=\"*.cmake\" 2>/dev/null | head -20)",
+      "Bash(find \"/c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep\" -name \"*.cmake\" 2>/dev/null | grep -i cgal | head -10)",
+      "Bash(ls \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/lib/\"*gmp* \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/lib/\"*mpfr* 2>&1)",
+      "Bash(ls \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*gmp* \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/deps/build/OrcaSlicer_dep/usr/local/bin/\"*mpfr* 2>&1)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src -name \"*.rc\" -o -name \"*.manifest\" 2>/dev/null | head -20)",
+      "Bash(grep -r \"IDI_\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src --include=\"*.cpp\" --include=\"*.h\" --include=\"*.hpp\" 2>/dev/null | head -5)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images -name \"*Orca*\" -o -name \"*Icon*\" 2>/dev/null | sort)",
+      "Bash(ls -la /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/Icon* 2>/dev/null)",
+      "Bash(ls -la /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/OrcaSlicer* | head -30)",
+      "Bash(grep -r \"OrcaSlicer.*\\\\.png\\\\|OrcaSlicer.*\\\\.ico\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src --include=\"*.cpp\" --include=\"*.h\" 2>/dev/null | head -10)",
+      "Bash(grep -r \"RC_ICON\\\\|IDI_ICON\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src --include=\"*.cpp\" --include=\"*.h\" --include=\"*.hpp\" 2>/dev/null | head -5)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images -name \"OrcaSlicer*\" -type f 2>/dev/null | sort)",
+      "Bash(grep -r \"OrcaSlicer.desktop\\\\|icon.*theme\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer --include=\"*.cpp\" --include=\"CMakeLists.txt\" 2>/dev/null | head -10)",
+      "Bash(ls -lh /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/splash* 2>/dev/null)",
+      "Bash(grep -r \"class.*ComboBox\\\\|m_filament.*ComboBox\\\\|m_process.*ComboBox\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src/slic3r/GUI/*.hpp | head -30)",
+      "Bash(find /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src/slic3r/GUI -name \"*.hpp\" -o -name \"*.cpp\" | xargs grep -l \"class Sidebar\" | head -5)",
+      "Bash(grep -l \"Sidebar\" /c/Users/MohammadAdib/Documents/GitHub/TitanSlicer/src/slic3r/GUI/*.hpp | head -5)",
+      "Bash(grep -n \"s_project_options\\\\|PROJECT_OPTIONS\" src/libslic3r/*.cpp src/libslic3r/*.hpp | head -30)",
+      "Bash(cd \"C:\\\\Users\\\\MohammadAdib\\\\Documents\\\\GitHub\\\\TitanSlicer\\\\build\" && cmake --build . --config Release --target ALL_BUILD -- -m 2>&1 | tail -100)",
+      "Bash(cd \"C:\\\\Users\\\\MohammadAdib\\\\Documents\\\\GitHub\\\\TitanSlicer\\\\build\" && cmake --build . --config Release --target ALL_BUILD -- -m:4 2>&1 | tail -80)",
+      "Bash(taskkill //F //IM MSBuild.exe 2>/dev/null; taskkill //F //IM cl.exe 2>/dev/null; echo \"Done\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(python -c \"from PIL import Image; print\\('PIL available'\\)\" 2>&1 || magick --version 2>&1 | head -1 || convert --version 2>&1 | head -1)",
+      "Bash(pip install:*)",
+      "Read(//c/Users/MohammadAdib/Downloads/**)",
+      "Bash(python -c \"\nfrom PIL import Image\nimport os\n\nsrc = 'C:/Users/MohammadAdib/Downloads/icon.png'\nimg = Image.open\\(src\\).convert\\('RGBA'\\)\nprint\\(f'Source image size: {img.size}'\\)\n\nsizes = [\\(16,16\\), \\(24,24\\), \\(32,32\\), \\(48,48\\), \\(64,64\\), \\(128,128\\), \\(256,256\\)]\nico_path = 'C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/OrcaSlicer.ico'\nimg.save\\(ico_path, format='ICO', sizes=sizes\\)\nprint\\(f'Saved ICO: {os.path.getsize\\(ico_path\\)} bytes'\\)\n\nmac_ico_path = 'C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/OrcaSlicer-mac_256px.ico'\nimg.save\\(mac_ico_path, format='ICO', sizes=[\\(256,256\\)]\\)\nprint\\(f'Saved mac ICO: {os.path.getsize\\(mac_ico_path\\)} bytes'\\)\n\npng_path = 'C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer/resources/images/OrcaSlicer.png'\nresized = img.resize\\(\\(154, 154\\), Image.LANCZOS\\)\nresized.save\\(png_path, format='PNG'\\)\nprint\\(f'Saved PNG: {os.path.getsize\\(png_path\\)} bytes'\\)\n\")",
+      "Bash(ls -lh resources/images/toolbar_background* resources/images/select_platertoolbar_background* 2>/dev/null)",
+      "Bash(cd \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer\" && python -c \"\nimport struct\n\nwith open\\('resources/images/OrcaSlicer.ico', 'rb'\\) as f:\n    reserved, img_type, num_images = struct.unpack\\('<HHH', f.read\\(6\\)\\)\n    print\\(f'Type: {img_type}, Num images: {num_images}'\\)\n    for i in range\\(num_images\\):\n        w, h, colors, reserved, planes, bpp, size, offset = struct.unpack\\('<BBBBHHIH', f.read\\(16\\)\\)\n        w = 256 if w == 0 else w\n        h = 256 if h == 0 else h\n        print\\(f'  Entry {i}: {w}x{h}, bpp={bpp}, size={size}, offset={offset}'\\)\n\")",
+      "Bash(cd \"C:/Users/MohammadAdib/Documents/GitHub/TitanSlicer\" && python -c \"\nimport struct\n\nwith open\\('resources/images/OrcaSlicer.ico', 'rb'\\) as f:\n    data = f.read\\(6\\)\n    reserved, img_type, num_images = struct.unpack\\('<HHH', data\\)\n    print\\(f'Type: {img_type}, Num images: {num_images}'\\)\n    for i in range\\(num_images\\):\n        entry = f.read\\(16\\)\n        w, h, colors, reserved2, planes, bpp, size, offset = struct.unpack\\('<BBBBHHII', entry\\)\n        w = 256 if w == 0 else w\n        h = 256 if h == 0 else h\n        print\\(f'  Entry {i}: {w}x{h}, bpp={bpp}, size={size}, offset={offset}'\\)\n\")"
+    ]
+  }
+}

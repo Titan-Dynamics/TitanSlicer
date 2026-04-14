@@ -128,13 +128,17 @@ cd %WP%
 mkdir %build_dir%
 cd %build_dir%
 
+@REM Force GMP/MPFR to use deps build libraries (avoid Strawberry Perl conflict)
+set "DEP_DIR=%WP%\deps\build\OrcaSlicer_dep\usr\local"
+set "GMP_MPFR_FLAGS=-DGMP_INCLUDE_DIR=%DEP_DIR%\include -DGMP_LIBRARY_RELEASE=%DEP_DIR%\lib\libgmp-10.lib -DGMP_LIBRARY_DEBUG=%DEP_DIR%\lib\libgmp-10.lib -DMPFR_INCLUDE_DIR=%DEP_DIR%\include -DMPFR_LIBRARIES=%DEP_DIR%\lib\libmpfr-4.lib -DMPFR_LIBRARIES_DIR=%DEP_DIR%\lib"
+
 echo on
 set CMAKE_POLICY_VERSION_MINIMUM=3.5
 if "%USE_NINJA%"=="1" (
-    cmake .. -G %CMAKE_GENERATOR% -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_BUILD_TYPE=%build_type%
+    cmake .. -G %CMAKE_GENERATOR% -DORCA_TOOLS=ON %SIG_FLAG% %GMP_MPFR_FLAGS% -DCMAKE_BUILD_TYPE=%build_type%
     cmake --build . --config %build_type% --target ALL_BUILD
 ) else (
-    cmake .. -G %CMAKE_GENERATOR% -A x64 -DORCA_TOOLS=ON %SIG_FLAG% -DCMAKE_BUILD_TYPE=%build_type%
+    cmake .. -G %CMAKE_GENERATOR% -A x64 -DORCA_TOOLS=ON %SIG_FLAG% %GMP_MPFR_FLAGS% -DCMAKE_BUILD_TYPE=%build_type%
     cmake --build . --config %build_type% --target ALL_BUILD -- -m
 )
 @echo off
