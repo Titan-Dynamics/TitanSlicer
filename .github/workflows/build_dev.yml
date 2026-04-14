@@ -101,8 +101,8 @@ jobs:
 
             **Full Changelog**: https://github.com/Titan-Dynamics/TitanSlicer/commits/${{ steps.version.outputs.tag }}
           files: |
-            artifacts/**/TitanSlicer_Windows_Installer_*.exe
-            artifacts/**/TitanSlicer_Mac_universal_*.dmg
-            artifacts/**/TitanSlicer_Linux_AppImage*.AppImage
+            artifacts/**/OrcaSlicer_Windows_Installer_*.exe
+            artifacts/**/OrcaSlicer_Mac_universal_*.dmg
+            artifacts/**/OrcaSlicer_Linux_AppImage*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
