@@ -177,12 +177,12 @@ const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = { 0.f, 156 / 255.f, 136 / 255
 const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ACTIVE            = { 0.675f, 0.675f, 0.675f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_SEPARATOR_DARK    = { 0.14f, 0.14f, 0.17f, 1.0f }; // darkened
+const ImVec4 ImGuiWrapper::COL_SEPARATOR_DARK    = { 0.14f, 0.14f, 0.17f, 1.0f }; // TitanSlicer
 const ImVec4 ImGuiWrapper::COL_TITLE_BG          = { 0.745f, 0.745f, 0.745f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_WINDOW_BG_DARK    = { 29 / 255.f, 29 / 255.f, 33 / 255.f, 1.f }; // darkened
+const ImVec4 ImGuiWrapper::COL_WINDOW_BG_DARK    = { 29 / 255.f, 29 / 255.f, 33 / 255.f, 1.f }; // TitanSlicer
 const ImVec4 ImGuiWrapper::COL_TOOLBAR_BG        = { 250 / 255.f, 250 / 255.f, 250 / 255.f, 1.f };
-const ImVec4 ImGuiWrapper::COL_TOOLBAR_BG_DARK   = { 40  / 255.f, 40  / 255.f, 46  / 255.f, 1.f }; // darkened
+const ImVec4 ImGuiWrapper::COL_TOOLBAR_BG_DARK   = { 40  / 255.f, 40  / 255.f, 46  / 255.f, 1.f }; // TitanSlicer
 const ImVec4 ImGuiWrapper::COL_ORCA              = to_ImVec4(ColorRGBA::ORCA());
 const ImVec4 ImGuiWrapper::COL_MODIFIED          = { 253.f / 255.f, 111.f / 255.f, 40.f / 255.f, 1}; // ORCA same color with m_color_label_modified
 
