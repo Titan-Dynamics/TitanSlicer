@@ -6151,6 +6151,18 @@ void PrintConfigDef::init_fff_params()
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
 
+    def = this->add("bridge_temperature", coInts);
+    def->label = L("Bridge");
+    def->tooltip = L("Nozzle temperature when printing bridges, internal bridges, and overhang perimeters. "
+                     "Set to 0 to use the regular nozzle temperature for these regions. "
+                     "Note: due to nozzle thermal mass, the actual temperature may not fully reach this value before the bridge is printed.");
+    def->sidetext = L(u8"℃" /* °C */);
+    def->full_label = L("Bridge nozzle temperature");
+    def->min = 0;
+    def->max = max_temp;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
     //def->tooltip = L("");
@@ -7843,6 +7855,7 @@ std::set<std::string> filament_options_with_variant = {
     "retraction_distances_when_ec",
     "nozzle_temperature_initial_layer",
     "nozzle_temperature",
+    "bridge_temperature",
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
     "volumetric_speed_coefficients",

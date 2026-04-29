@@ -536,7 +536,9 @@ private:
     TimelapsePosPicker                  m_timelapse_pos_picker;
     bool                                m_enable_loop_clipping;
     //resonance avoidance
-    bool                                m_resonance_avoidance; 
+    bool                                m_resonance_avoidance;
+    // TitanSlicer: tracks whether the current extruder is currently set to bridge_temperature.
+    bool                                m_at_bridge_temp{false};
     // If enabled, the G-code generator will put following comments at the ends
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.

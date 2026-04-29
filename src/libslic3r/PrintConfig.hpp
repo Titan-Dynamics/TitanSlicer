@@ -1499,6 +1499,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,                preheat_time))
     ((ConfigOptionInt,                preheat_steps))
     ((ConfigOptionInts,               nozzle_temperature))
+    ((ConfigOptionInts,               bridge_temperature))
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionInts,               nozzle_temperature_range_low))

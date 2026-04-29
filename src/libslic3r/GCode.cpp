@@ -6169,6 +6169,26 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 {
     std::string gcode;
 
+    // TitanSlicer: bridge nozzle temperature override. Switches nozzle temp on entering
+    // bridge/overhang extrusions and restores nominal on the next non-bridge path.
+    {
+        const int filament_id = m_writer.filament()->id();
+        const int bridge_temp = m_config.bridge_temperature.get_at(filament_id);
+        const bool path_is_bridge = is_bridge(path.role());
+        auto nominal_temp = [&]() {
+            return this->on_first_layer()
+                ? m_config.nozzle_temperature_initial_layer.get_at(filament_id)
+                : m_config.nozzle_temperature.get_at(filament_id);
+        };
+        if (bridge_temp > 0 && path_is_bridge && !m_at_bridge_temp) {
+            gcode += m_writer.set_temperature(bridge_temp, false, filament_id);
+            m_at_bridge_temp = true;
+        } else if (m_at_bridge_temp && (!path_is_bridge || bridge_temp <= 0)) {
+            gcode += m_writer.set_temperature(nominal_temp(), false, filament_id);
+            m_at_bridge_temp = false;
+        }
+    }
+
     if (is_bridge(path.role()))
         description += " (bridge)";
 
