@@ -2433,7 +2433,8 @@ void PartPlate::generate_plate_name_texture()
     // Convert to RGBA with per-pixel coloring
     wxImage image = bitmap.ConvertToImage();
     wxColour name_color(0xf2, 0x75, 0x4e); // orange
-    wxColour sub_color(0xc4, 0xc4, 0xc4); // gray matching edit icon color
+    // TitanSlicer: subtitle text needs to be darker in light mode for legibility
+    wxColour sub_color = wxGetApp().dark_mode() ? wxColour(0xc4, 0xc4, 0xc4) : wxColour(0x33, 0x33, 0x33);
 
     std::vector<unsigned char> data(4 * tex_w * tex_h, 0);
     const unsigned char* src = image.GetData();
