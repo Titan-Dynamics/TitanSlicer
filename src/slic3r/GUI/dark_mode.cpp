@@ -71,12 +71,12 @@ namespace NppDarkMode
 
 	COLORREF GetBackgroundColor()
 	{
-		return IsEnabled() ? RGB(0x1D, 0x1D, 0x21) : wxSystemSettings::GetColour(wxSYS_COLOUR_MENUBAR).GetRGB(); // TitanSlicer
+		return IsEnabled() ? RGB(0x2B, 0x2B, 0x2B) : wxSystemSettings::GetColour(wxSYS_COLOUR_MENUBAR).GetRGB();
 	}
 
 	COLORREF GetSofterBackgroundColor()
 	{
-		return IsEnabled() ? RGB(0x30, 0x30, 0x34) : RGB(0xD9, 0xD9, 0xD9); // TitanSlicer
+		return IsEnabled() ? RGB(0x40, 0x40, 0x40) : RGB(0xD9, 0xD9, 0xD9); //RGB(0x78, 0x78, 0x78);
 	}
 
 	COLORREF GetTextColor()

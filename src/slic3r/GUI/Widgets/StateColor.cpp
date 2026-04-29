@@ -11,43 +11,43 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#FF6F00", "#D15B00"}, // rgb(255, 111, 0)    Secondary color
     {"#D01B1B", "#BB2A3A"}, // rgb(208, 27, 27)    ???
     {"#262E30", "#EFEFF0"}, // rgb(38, 46, 48)     Button text color | Input Text Color
-    {"#DFDFDF", "#2E2E35"}, // rgb(223, 223, 223)  Button Background color (TitanSlicer)
-    {"#D4D4D4", "#3D3D44"}, // rgb(212, 212, 212)  Button Background color on Hover (TitanSlicer)
+    {"#DFDFDF", "#3E3E45"}, // rgb(223, 223, 223)  Button Background color
+    {"#D4D4D4", "#4D4D54"}, // rgb(212, 212, 212)  Button Background color on Hover
     {"#6B6A6A", "#909090"}, // rgb(107, 107, 106)  Button Dimmed text
     {"#26A69A", "#008172"}, // rgb(0, 150, 136)    Button Confirm Color hover | ORCA Color Hover
     {"#6B6B6A", "#B3B3B5"}, // rgb(107, 107, 106)  Input box side text
     {"#2C2C2E", "#B3B3B4"}, // rgb(44, 44, 46)     ???
     {"#6B6B6B", "#818183"}, // rgb(107, 107, 107)  Disabled Text
     {"#ACACAC", "#65656A"}, // rgb(172, 172, 172)  Disabled Text on boxes | Dimmed Elements
-    {"#EEEEEE", "#3C3C45"}, // rgb(238, 238, 238)  Separator Line | Title Line Color (TitanSlicer)
-    {"#E8E8E8", "#2E2E35"}, // rgb(232, 232, 232)  ??? (TitanSlicer)
+    {"#EEEEEE", "#4C4C55"}, // rgb(238, 238, 238)  Separator Line | Title Line Color
+    {"#E8E8E8", "#3E3E45"}, // rgb(232, 232, 232)  ???
     {"#323A3D", "#E5E5E4"}, // rgb(50, 58, 61)     Softer text color
-    {"#FFFFFF", "#1D1D21"}, // rgb(255, 255, 255)  Window background (TitanSlicer)
-    {"#F8F8F8", "#26262C"}, // rgb(248, 248, 248)  Sidebar > Titlebar > Gradient Top (TitanSlicer)
-    {"#F1F1F1", "#26262B"}, // rgb(241, 241, 241)  Sidebar > Titlebar > Gradient Bottom (TitanSlicer)
-    {"#3B4446", "#1D1D20"}, // rgb(59, 68, 78)     Top Bar / Main tab bar bg color (TitanSlicer)
-    {"#CECECE", "#44444B"}, // rgb(206, 206, 206)  Sidebar wxPanel bg (TitanSlicer)
-    {"#DBFDD5", "#2B2B30"}, // rgb(219, 253, 213)  Not Used anymore
+    {"#FFFFFF", "#2D2D31"}, // rgb(255, 255, 255)  Window background
+    {"#F8F8F8", "#36363C"}, // rgb(248, 248, 248)  Sidebar > Titlebar > Gradient Top | BBL monitor page titlebar bg
+    {"#F1F1F1", "#36363B"}, // rgb(241, 241, 241)  Sidebar > Titlebar > Gradient Bottom
+    {"#3B4446", "#2D2D30"}, // rgb(59, 68, 78)     Top Bar / Main tab bar bg color
+    {"#CECECE", "#54545B"}, // rgb(206, 206, 206)  Sidebar wxPanel bg |
+    {"#DBFDD5", "#3B3B40"}, // rgb(219, 253, 213)  Not Used anymore // Was used for BBS combo boxes etc
     {"#000000", "#FFFFFE"}, // rgb(0, 0, 0)        Mostly Text color wxBlack
-    {"#F4F4F4", "#26262D"}, // rgb(244, 244, 244)  ??? (TitanSlicer)
-    {"#DBDBDB", "#3A3A41"}, // rgb(219, 219, 219)  Input/Combo Box Border Color (TitanSlicer)
-    {"#EDFAF2", "#283232"}, // rgb(229, 240, 238)  Green-tinted - kept
-    {"#323A3C", "#E5E5E6"}, // rgb(50, 58, 60)     Text color used on search list
-    {"#303A3C", "#E5E5E5"}, // rgb(48, 58, 60)     Object Table > Column header text color
-    {"#FEFFFF", "#141418"}, // rgb(254, 255, 255)  Side Tabbar bg (TitanSlicer)
-    {"#A6A9AA", "#1D1D19"}, // rgb(166, 169, 170)  Separator color (TitanSlicer)
-    {"#363636", "#B2B3B5"}, // rgb(54, 54, 54)     Sidebar > Parameter Label/Title color
-    {"#F0F0F1", "#232327"}, // rgb(240, 240, 241)  Disabled element background (TitanSlicer)
-    {"#9E9E9E", "#43444A"}, // rgb(158, 158, 158)  ??? (TitanSlicer)
-    {"#D7E8DE", "#1F2B27"}, // rgb(215, 232, 222)  Green-tinted - kept
-    {"#2B3436", "#808080"}, // rgb(43, 52, 54)     Not Used anymore
+    {"#F4F4F4", "#36363D"}, // rgb(244, 244, 244)  ???
+    {"#DBDBDB", "#4A4A51"}, // rgb(219, 219, 219)  Input/Combo Box Border Color
+    {"#EDFAF2", "#283232"}, // rgb(229, 240, 238)  Not Used anymore // Was used for BBS Combo / Dropdown focused background color
+    {"#323A3C", "#E5E5E6"}, // rgb(50, 58, 60)     Text color used on search list |
+    {"#303A3C", "#E5E5E5"}, // rgb(48, 58, 60)     Object Table > Column header text color | StaticBox Border Color
+    {"#FEFFFF", "#242428"}, // rgb(254, 255, 255)  Side Tabbar bg |
+    {"#A6A9AA", "#2D2D29"}, // rgb(166, 169, 170)  Seperator color
+    {"#363636", "#B2B3B5"}, // rgb(54, 54, 54)     Sidebar > Parameter Label/Title color | Sidebar tab text | Create Filament window text
+    {"#F0F0F1", "#333337"}, // rgb(240, 240, 241)  Disabled element background // ORCA Used better background color for dark mode
+    {"#9E9E9E", "#53545A"}, // rgb(158, 158, 158)  ???
+    {"#D7E8DE", "#1F2B27"}, // rgb(215, 232, 222)  Not Used anymore // Leftover from BBS
+    {"#2B3436", "#808080"}, // rgb(43, 52, 54)     Not Used anymore // Leftover from BBS. Was used as main fill color of icons
     {"#ABABAB", "#ABABAB"},
-    {"#D9D9D9", "#1D1D22"}, // rgb(217, 217, 217)  Sidebar > Toggle button track color (TitanSlicer)
-    {"#EBF9F0", "#293F34"}, // Green-tinted - kept
+    {"#D9D9D9", "#2D2D32"}, // rgb(217, 217, 217)  Sidebar > Toggle button track color
+    {"#EBF9F0", "#293F34"},
     //{"#F0F0F0", "#4C4C54"},
     // ORCA
-    {"#BFE1DE", "#223C3C"}, // rgb(191, 225, 222)  Dropdown checked item background color - green tinted, kept
-    {"#E5F0EE", "#283232"}, // rgb(229, 240, 238)  Combo / Dropdown focused background color - green tinted, kept
+    {"#BFE1DE", "#223C3C"}, // rgb(191, 225, 222)  Dropdown checked item background color > ORCA color with %25 opacity
+    {"#E5F0EE", "#283232"}, // rgb(229, 240, 238)  Combo / Dropdown focused background color > ORCA color with %10 opacity
 };
 
 std::tuple<double, double, double> StateColor::GetLAB(const wxColour& color) {
