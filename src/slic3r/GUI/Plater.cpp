@@ -533,6 +533,9 @@ struct Sidebar::priv
     StaticBox* m_search_bar = nullptr;
     Search::SearchObjectDialog* dia = nullptr;
 
+    // TitanSlicer: branding logo above the Printer panel (theme-aware).
+    wxStaticBitmap* m_image_titan_logo = nullptr;
+
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
     ScalableButton* m_printer_icon = nullptr;
@@ -1727,6 +1730,16 @@ Sidebar::Sidebar(Plater *parent)
         //spliter_1->SetBackgroundColour("#A6A9AA");
         //scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
 
+        // TitanSlicer: branding logo above the Printer panel.
+        {
+            const std::string logo_name = wxGetApp().dark_mode() ? "td_logo_white" : "td_logo_black";
+            ScalableBitmap titan_logo_bmp(p->scrolled, logo_name, 80);
+            p->m_image_titan_logo = new wxStaticBitmap(p->scrolled, wxID_ANY, titan_logo_bmp.bmp(), wxDefaultPosition, wxDefaultSize, 0);
+            scrolled_sizer->AddSpacer(FromDIP(8));
+            scrolled_sizer->Add(p->m_image_titan_logo, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(8));
+            scrolled_sizer->AddSpacer(FromDIP(8));
+        }
+
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
         p->m_panel_printer_title->Bind(wxEVT_LEFT_UP, [this] (auto & e) {
@@ -2330,6 +2343,12 @@ void Sidebar::on_change_color_mode(bool is_dark) {
         wxGetApp().obj_list()->update_info_items(i,nullptr,false,true);
     }
 
+    // TitanSlicer: swap the sidebar logo to match the new theme.
+    if (p->m_image_titan_logo) {
+        const std::string logo_name = is_dark ? "td_logo_white" : "td_logo_black";
+        ScalableBitmap titan_logo_bmp(this, logo_name, 60);
+        p->m_image_titan_logo->SetBitmap(titan_logo_bmp.bmp());
+    }
 }
 
 void Sidebar::create_printer_preset()
