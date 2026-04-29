@@ -421,7 +421,8 @@ void PartPlate::calc_bounding_boxes() const {
 		Vec2d label_p = bed_ext[3]; // top-left corner of bed
 		double factor = bed_ext.size()(1) / 200.0;
 		double label_height = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * 3.0; // matches 3x scale in generate_plate_name_texture
-		double label_offset_y = factor * PARTPLATE_TEXT_OFFSET_Y;
+		// TitanSlicer: keep in sync with offset_y in generate_plate_name_texture
+		double label_offset_y = factor * PARTPLATE_TEXT_OFFSET_Y - label_height * 0.3;
 		// Label extends rightward and upward from top-left corner; conservatively use full bed width
 		double label_width = bed_ext.size()(0);
 		extended_bounding_box->merge({ label_p(0), label_p(1) + label_offset_y + label_height, GROUND_Z });
@@ -2467,7 +2468,10 @@ void PartPlate::generate_plate_name_texture()
     float icon_sz  = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * 3.0f; // 3x scale for readability
     float width    = icon_sz * m_name_texture.get_width() / m_name_texture.get_height(); // icon size * text_bb_ratio
     float height   = icon_sz; // scale with icon size to preserve ratio while system scaling
-    float offset_y = factor * PARTPLATE_TEXT_OFFSET_Y - icon_sz * 0.15f; // nudge down half a line
+    // TitanSlicer: nudge the label down one line-height so the visible text's bottom
+    // lines up with the edit-icon's bottom (texture is bottom-aligned but reserves two
+    // sub-line heights of empty space above the name).
+    float offset_y = factor * PARTPLATE_TEXT_OFFSET_Y - icon_sz * 0.3f;
 
     //if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
     //    px = scale_(bed_ext.center()(0)) - (width + height) / 2.00;
