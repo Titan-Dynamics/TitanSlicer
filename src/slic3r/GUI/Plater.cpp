@@ -12014,21 +12014,18 @@ int Plater::save_project(bool saveAs)
     if (filename == "<cancel>")
         return wxID_CANCEL;
 
-    // Production Ready save protection
+    // Production Ready save protection: block overwriting outright.
     {
         auto* preset_bundle = wxGetApp().preset_bundle;
         if (preset_bundle) {
             auto* opt = preset_bundle->project_config.option<ConfigOptionBool>("production_ready");
             if (opt && opt->value) {
                 MessageDialog dlg(this,
-                    _L("WARNING: This project is marked as PRODUCTION READY!\n\n"
-                       "Saving will overwrite the production-ready file. "
-                       "Any changes you made could affect production output.\n\n"
-                       "Are you absolutely sure you want to save?"),
-                    _L("Production Ready - Confirm Save"),
-                    wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTRE);
-                if (dlg.ShowModal() != wxID_YES)
-                    return wxID_CANCEL;
+                    _L("This file is marked as PRODUCTION READY and cannot be saved over."),
+                    _L("Production Ready - Save Blocked"),
+                    wxOK | wxICON_WARNING | wxCENTRE);
+                dlg.ShowModal();
+                return wxID_CANCEL;
             }
         }
     }
