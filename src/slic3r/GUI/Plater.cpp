@@ -535,6 +535,7 @@ struct Sidebar::priv
 
     // TitanSlicer: branding logo above the Printer panel (theme-aware).
     wxStaticBitmap* m_image_titan_logo = nullptr;
+    wxImage         m_titan_logo_src;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
@@ -1730,14 +1731,31 @@ Sidebar::Sidebar(Plater *parent)
         //spliter_1->SetBackgroundColour("#A6A9AA");
         //scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
 
-        // TitanSlicer: branding logo above the Printer panel.
+        // TitanSlicer: branding logo above the Printer panel. Rescales on resize so it
+        // is never clipped when the sidebar is narrowed.
         {
             const std::string logo_name = wxGetApp().dark_mode() ? "td_logo_white" : "td_logo_black";
             ScalableBitmap titan_logo_bmp(p->scrolled, logo_name, 80);
+            p->m_titan_logo_src = titan_logo_bmp.bmp().ConvertToImage();
             p->m_image_titan_logo = new wxStaticBitmap(p->scrolled, wxID_ANY, titan_logo_bmp.bmp(), wxDefaultPosition, wxDefaultSize, 0);
             scrolled_sizer->AddSpacer(FromDIP(8));
-            scrolled_sizer->Add(p->m_image_titan_logo, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(8));
+            scrolled_sizer->Add(p->m_image_titan_logo, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
             scrolled_sizer->AddSpacer(FromDIP(8));
+
+            p->scrolled->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+                e.Skip();
+                if (!p->m_image_titan_logo || !p->m_titan_logo_src.IsOk()) return;
+                const int margin = FromDIP(8);
+                int avail = p->scrolled->GetClientSize().GetWidth() - 2 * margin;
+                if (avail <= 0) return;
+                const int src_w = p->m_titan_logo_src.GetWidth();
+                const int src_h = p->m_titan_logo_src.GetHeight();
+                const int new_w = std::min(avail, src_w);
+                const int new_h = std::max(1, src_h * new_w / src_w);
+                const wxSize cur = p->m_image_titan_logo->GetBitmap().GetSize();
+                if (cur.GetWidth() == new_w && cur.GetHeight() == new_h) return;
+                p->m_image_titan_logo->SetBitmap(wxBitmap(p->m_titan_logo_src.Scale(new_w, new_h, wxIMAGE_QUALITY_HIGH)));
+            });
         }
 
         // add printer title
@@ -2343,11 +2361,18 @@ void Sidebar::on_change_color_mode(bool is_dark) {
         wxGetApp().obj_list()->update_info_items(i,nullptr,false,true);
     }
 
-    // TitanSlicer: swap the sidebar logo to match the new theme.
+    // TitanSlicer: swap the sidebar logo to match the new theme, then rescale to fit.
     if (p->m_image_titan_logo) {
         const std::string logo_name = is_dark ? "td_logo_white" : "td_logo_black";
-        ScalableBitmap titan_logo_bmp(this, logo_name, 60);
-        p->m_image_titan_logo->SetBitmap(titan_logo_bmp.bmp());
+        ScalableBitmap titan_logo_bmp(this, logo_name, 80);
+        p->m_titan_logo_src = titan_logo_bmp.bmp().ConvertToImage();
+        const int margin = FromDIP(8);
+        int avail = p->scrolled ? p->scrolled->GetClientSize().GetWidth() - 2 * margin : 0;
+        const int src_w = p->m_titan_logo_src.GetWidth();
+        const int src_h = p->m_titan_logo_src.GetHeight();
+        const int new_w = avail > 0 ? std::min(avail, src_w) : src_w;
+        const int new_h = std::max(1, src_h * new_w / src_w);
+        p->m_image_titan_logo->SetBitmap(wxBitmap(p->m_titan_logo_src.Scale(new_w, new_h, wxIMAGE_QUALITY_HIGH)));
     }
 }
 
