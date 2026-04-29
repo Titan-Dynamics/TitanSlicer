@@ -9176,6 +9176,12 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
         }
 
         if (new_bed_type != btCount) {
+            // TitanSlicer: always persist the dropdown's value to the current plate so it's saved
+            // per-plate to the 3mf — even if the project default isn't changing. This makes every
+            // dropdown interaction lock the bed type into the current plate.
+            if (auto* curr_plate = partplate_list.get_curr_plate())
+                curr_plate->set_bed_type(new_bed_type);
+
             BedType old_bed_type = proj_config.opt_enum<BedType>("curr_bed_type");
             if (old_bed_type != new_bed_type) {
                 proj_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(new_bed_type));
@@ -10095,6 +10101,29 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+
+    // TitanSlicer: auto-select the bed type stored on this plate (or fall back to project default)
+    if (sidebar) {
+        if (auto* part_plate = partplate_list.get_curr_plate()) {
+            BedType plate_explicit = part_plate->get_bed_type(false /* no fallback, see what the plate stores */);
+            BedType plate_bed_type = part_plate->get_bed_type(true  /* fall back to project */);
+            BedType current_dropdown = sidebar->get_cur_select_bed_type();
+            BOOST_LOG_TRIVIAL(info) << "TitanSlicer plate-bed sync: plate_idx=" << partplate_list.get_curr_plate_index()
+                                    << " explicit=" << int(plate_explicit)
+                                    << " effective=" << int(plate_bed_type)
+                                    << " dropdown=" << int(current_dropdown);
+            if (plate_bed_type != btDefault && plate_bed_type != btCount) {
+                const auto& available = sidebar->get_cur_combox_bed_types();
+                bool in_combo = std::find(available.begin(), available.end(), plate_bed_type) != available.end();
+                BOOST_LOG_TRIVIAL(info) << "TitanSlicer plate-bed sync: in_combo=" << in_combo
+                                        << " available_size=" << available.size();
+                if (in_combo && current_dropdown != plate_bed_type) {
+                    BOOST_LOG_TRIVIAL(info) << "TitanSlicer plate-bed sync: updating dropdown to " << int(plate_bed_type);
+                    sidebar->set_bed_type_accord_combox(plate_bed_type);
+                }
+            }
+        }
+    }
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
