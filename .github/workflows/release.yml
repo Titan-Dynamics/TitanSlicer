@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'localization/**'
+      - 'resources/**'
+      - ".github/workflows/release.yml"
+      - ".github/workflows/build_check_cache.yml"
+      - ".github/workflows/build_deps.yml"
+      - ".github/workflows/build_orca.yml"
+
+  workflow_dispatch: # allows manual trigger
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_linux:
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ubuntu-24.04
+    secrets: inherit
+
+  build_windows:
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: windows-latest
+    secrets: inherit
+
+  build_macos_arch:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - arm64
+          - x86_64
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: macos-14
+      arch: ${{ matrix.arch }}
+    secrets: inherit
+
+  build_macos_universal:
+    name: Build macOS Universal
+    needs: build_macos_arch
+    if: ${{ !cancelled() && needs.build_macos_arch.result == 'success' }}
+    uses: ./.github/workflows/build_orca.yml
+    with:
+      os: macos-14
+      arch: universal
+      macos-combine-only: true
+    secrets: inherit
+
+  release:
+    name: Create GitHub Release
+    needs: [build_linux, build_windows, build_macos_universal]
+    if: ${{ !cancelled() && needs.build_windows.result == 'success' && needs.build_linux.result == 'success' && needs.build_macos_universal.result == 'success' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get version info
+        id: version
+        run: |
+          ver_pure=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
+          short_sha=$(echo "${{ github.sha }}" | cut -c1-7)
+          date=$(date +'%Y%m%d')
+          tag="v${ver_pure}-${date}-${short_sha}"
+          echo "ver_pure=$ver_pure" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "date=$date" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | head -50
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Release ${{ steps.version.outputs.ver_pure }} (${{ steps.version.outputs.date }})"
+          prerelease: false
+          body: |
+            <img width="256" height="256" alt="icon" src="https://github.com/user-attachments/assets/6796538f-4a06-4ffa-8bf4-1f2e5cf369da" />
+
+            **Full Changelog**: https://github.com/Titan-Dynamics/TitanSlicer/commits/${{ steps.version.outputs.tag }}
+          files: |
+            artifacts/**/OrcaSlicer_Windows_Installer_*.exe
+            artifacts/**/OrcaSlicer_Mac_universal_*.dmg
+            artifacts/**/OrcaSlicer_Linux_AppImage*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
