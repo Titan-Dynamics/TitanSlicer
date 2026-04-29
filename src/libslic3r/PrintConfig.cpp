@@ -6153,8 +6153,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("bridge_temperature", coInts);
     def->label = L("Bridge");
-    def->tooltip = L("Nozzle temperature when printing bridges, internal bridges, and overhang perimeters. "
-                     "Set to 0 to use the regular nozzle temperature for these regions. "
+    def->tooltip = L("Nozzle temperature when printing bridges and internal bridges. Overhang perimeters use the regular nozzle temperature. "
+                     "Set to 0 to use the regular nozzle temperature for bridges as well. "
                      "Note: due to nozzle thermal mass, the actual temperature may not fully reach this value before the bridge is printed.");
     def->sidetext = L(u8"℃" /* °C */);
     def->full_label = L("Bridge nozzle temperature");

@@ -3892,7 +3892,7 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         // TitanSlicer: per-filament bridge nozzle temperature override.
-        line = { L("Bridge"), L("Nozzle temperature when printing bridges and overhang perimeters. 0 disables the override.") };
+        line = { L("Bridge"), L("Nozzle temperature when printing bridges and internal bridges. 0 disables the override.") };
         line.label_path = "material_temperatures#nozzle";
         line.append_option(optgroup->get_option("bridge_temperature", 0));
         optgroup->append_line(line);
