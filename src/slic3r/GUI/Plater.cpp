@@ -10247,6 +10247,11 @@ void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
     assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
     if (m_send_to_sdcard_dlg) m_send_to_sdcard_dlg->on_change_color_mode();
 
+    // TitanSlicer: invalidate cached plate-name textures so the subtitle color
+    // regenerates with the new mode-appropriate sub_color.
+    for (auto* plate : partplate_list.get_plate_list())
+        if (plate) plate->invalidate_plate_name_texture();
+
     apply_color_mode();
 }
 
