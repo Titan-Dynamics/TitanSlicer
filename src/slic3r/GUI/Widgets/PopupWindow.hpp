@@ -14,9 +14,18 @@ public:
     PopupWindow(wxWindow *parent, int style = wxBORDER_NONE) { Create(parent, style); }
 
     bool Create(wxWindow *parent, int flags = wxBORDER_NONE);
+#ifdef __WXGTK__
+    bool Show(bool show = true) override;
+#endif
 #ifdef __WXMSW__
     void BindUnfocusEvent();
 #endif
+protected:
+    // Orca: Hook so derived classes (e.g. DropDown chains) can skip auto-dismissal
+    // when the toplevel deactivates as a side effect of their own popup grab
+    // (notably on Wayland, where mapping a chained xdg_popup with grab makes
+    // the parent toplevel briefly inactive).
+    virtual bool ShouldDismissOnTopWindowDeactivate() { return true; }
 private:
 #ifdef __WXOSX__
     void OnMouseEvent2(wxMouseEvent &evt);

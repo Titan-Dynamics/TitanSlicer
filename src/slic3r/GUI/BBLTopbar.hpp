@@ -4,11 +4,19 @@
 #include "wx/aui/auibar.h"
 
 #include "SelectMachine.hpp"
-#include "DeviceManager.hpp"
 
 #include <wx/control.h>
+#include <wx/string.h>
+#include <wx/gdicmn.h>
+#include <wx/event.h>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
 
-using namespace Slic3r::GUI;
+class wxFrame;
+class wxMenuEvent;
+class wxMenuItem;
+class wxMouseCaptureLostEvent;
+class wxMouseEvent;
+class wxWindow;
 
 class CenteredTitle : public wxControl
 {
@@ -19,7 +27,7 @@ public:
     wxSize DoGetBestSize() const override;
 
 protected:
-#ifdef __WIN32__
+#ifdef __WXMSW__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
 #endif
 
@@ -49,12 +57,10 @@ public:
     void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
     void OnMenuClose(wxMenuEvent& event);
     void OnOpenProject(wxAuiToolBarEvent& event);
-    //void show_publish_button(bool show);
     void OnSaveProject(wxAuiToolBarEvent& event);
     void OnUndo(wxAuiToolBarEvent& event);
     void OnRedo(wxAuiToolBarEvent& event);
     void OnModelStoreClicked(wxAuiToolBarEvent& event);
-    void OnPublishClicked(wxAuiToolBarEvent &event);
 
     wxAuiToolBarItem* FindToolByCurrentPosition();
 	
@@ -69,6 +75,7 @@ public:
 
     void EnableUndoRedoItems();
     void DisableUndoRedoItems();
+    void EnableUndoRedo(bool undo, bool redo);
 
     void SaveNormalRect();
 
@@ -78,7 +85,7 @@ public:
     bool GetProductionReady() const;
 
 protected:
-#ifdef __WIN32__
+#ifdef __WXMSW__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
 #endif
 
@@ -96,10 +103,7 @@ private:
     CenteredTitle*    m_title_ctrl { nullptr };
     wxString          m_titleText;
 
-    wxAuiToolBarItem* m_account_item;
-    wxAuiToolBarItem* m_model_store_item;
     
-    //wxAuiToolBarItem *m_publish_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* m_calib_item;
@@ -109,9 +113,6 @@ private:
     bool                  m_production_ready{false};
     wxBitmap              m_toggle_on_bitmap;
     wxBitmap              m_toggle_off_bitmap;
-
-    wxBitmap m_publish_bitmap;
-    wxBitmap m_publish_disable_bitmap;
 
     wxBitmap maximize_bitmap;
     wxBitmap window_bitmap;
