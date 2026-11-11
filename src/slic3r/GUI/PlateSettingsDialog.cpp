@@ -19,6 +19,8 @@
 #include <vector>
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
+#include "slic3r/GUI/GUI.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include <wx/sizer.h>
 #include "slic3r/GUI/Widgets/TextInput.hpp"
 #include "libslic3r/Config.hpp"
