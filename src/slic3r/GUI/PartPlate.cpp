@@ -132,6 +132,8 @@ static unsigned int GLOBAL_PLATE_INDEX = 0;
 static const double LOGICAL_PART_PLATE_GAP = 1. / 5.;
 static const int PARTPLATE_ICON_SIZE = 16;
 static const int PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE = 9; // ORCA this also scales height of plate name
+// TitanSlicer: plate_name_edit*.svg draw their box down to y=33 of a 43 high view box
+static const float PARTPLATE_EDIT_PLATE_NAME_ICON_PAD_BOTTOM = 10.f / 43.f;
 static const int PARTPLATE_ICON_GAP_TOP = 3;
 static const int PARTPLATE_ICON_GAP_LEFT = 3;
 static const int PARTPLATE_ICON_GAP_Y = 5;
@@ -628,8 +630,8 @@ void PartPlate::calc_bounding_boxes() const {
 		Vec2d label_p = bed_ext[3]; // top-left corner of bed
 		double factor = icon_scale_factor(); // keep in sync with generate_plate_name_texture
 		double label_height = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * 3.0; // matches 3x scale in generate_plate_name_texture
-		// TitanSlicer: keep in sync with offset_y in generate_plate_name_texture
-		double label_offset_y = factor * PARTPLATE_TEXT_OFFSET_Y - label_height * 0.3;
+		// TitanSlicer: keep in sync with offset_y in generate_plate_name_texture, which also lowers it by the text's descent
+		double label_offset_y = factor * (PARTPLATE_TEXT_OFFSET_Y + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * PARTPLATE_EDIT_PLATE_NAME_ICON_PAD_BOTTOM);
 		// Label extends rightward and upward from top-left corner; conservatively use full bed width
 		double label_width = bed_ext.size()(0);
 		extended_bounding_box->merge({ label_p(0), label_p(1) + label_offset_y + label_height, GROUND_Z });
@@ -4240,13 +4242,13 @@ void PartPlate::generate_plate_name_texture()
 
     // Measure name line
     memDC.SetFont(name_font);
-    wxCoord name_w, name_h;
-    memDC.GetTextExtent(name_text, &name_w, &name_h);
+    wxCoord name_w, name_h, name_descent;
+    memDC.GetTextExtent(name_text, &name_w, &name_h, &name_descent);
 
     // Always measure subtitle line height for consistent texture sizing
     memDC.SetFont(sub_font);
-    wxCoord sub_line_h;
-    { wxCoord dw; memDC.GetTextExtent(wxT("Xg"), &dw, &sub_line_h); }
+    wxCoord sub_line_h, sub_descent;
+    { wxCoord dw; memDC.GetTextExtent(wxT("Xg"), &dw, &sub_line_h, &sub_descent); }
 
     wxCoord fil_w = 0, fil_h = 0, proc_w = 0, proc_h = 0;
     if (has_filament)
@@ -4270,13 +4272,13 @@ void PartPlate::generate_plate_name_texture()
     int tex_w = (int)next_pow2((unsigned int)total_w);
     int tex_h = (int)next_pow2((unsigned int)total_h);
 
-    // Render to bitmap - bottom-aligned (text drawn toward bottom of texture)
+    // Render to bitmap - the last line ends on the texture's bottom edge, which is the quad's bottom edge
     wxBitmap bitmap(tex_w, tex_h);
     memDC.SelectObject(bitmap);
     memDC.SetBackground(wxBrush(*wxBLACK));
     memDC.Clear();
 
-    int text_start_y = total_h - content_h;
+    int text_start_y = tex_h - content_h;
     int y = text_start_y;
 
     // Draw name in white (used as alpha mask, actual color applied per-pixel below)
@@ -4338,10 +4340,11 @@ void PartPlate::generate_plate_name_texture()
     float icon_sz  = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * 3.0f; // 3x scale for readability
     float width    = icon_sz * m_name_texture.get_width() / m_name_texture.get_height(); // icon size * text_bb_ratio
     float height   = icon_sz; // scale with icon size to preserve ratio while system scaling
-    // TitanSlicer: nudge the label down one line-height so the visible text's bottom
-    // lines up with the edit-icon's bottom (texture is bottom-aligned but reserves two
-    // sub-line heights of empty space above the name).
-    float offset_y = factor * PARTPLATE_TEXT_OFFSET_Y - icon_sz * 0.3f;
+    // TitanSlicer: put the last line's baseline level with the bottom of the edit icon's box
+    // (see calc_vertex_for_plate_name_edit_icon), so lower the quad by that line's descent.
+    float last_descent = (has_filament || has_process) ? sub_descent : name_descent;
+    float offset_y = factor * (PARTPLATE_TEXT_OFFSET_Y + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE * PARTPLATE_EDIT_PLATE_NAME_ICON_PAD_BOTTOM)
+                   - height * last_descent / tex_h;
 
     //if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
     //    px = scale_(bed_ext.center()(0)) - (width + height) / 2.00;
