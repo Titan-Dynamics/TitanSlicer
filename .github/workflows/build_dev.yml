@@ -33,6 +33,8 @@ jobs:
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: windows-latest
+      arch: x64
+      compiler: clang
     secrets: inherit
 
   build_macos_arch:
