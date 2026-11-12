@@ -44,7 +44,7 @@ jobs:
           - x86_64
     uses: ./.github/workflows/build_check_cache.yml
     with:
-      os: macos-14
+      os: macos-15
       arch: ${{ matrix.arch }}
     secrets: inherit
 
@@ -54,7 +54,7 @@ jobs:
     if: ${{ !cancelled() && needs.build_macos_arch.result == 'success' }}
     uses: ./.github/workflows/build_orca.yml
     with:
-      os: macos-14
+      os: macos-15
       arch: universal
       macos-combine-only: true
     secrets: inherit
