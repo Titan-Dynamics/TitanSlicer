@@ -2533,8 +2533,13 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
             const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
             new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(inst_transform, mesh_bb));
             // Set the modifier position.
-            // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
-            const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
+            Vec3d offset;
+            if (type == ModelVolumeType::PARAMETER_MODIFIER)
+                // TitanSlicer: center a new modifier on the instance's bounding box in XY, sitting on its bottom
+                offset = Vec3d(instance_bb.center().x(), instance_bb.center().y(), instance_bb.min.z() + 0.5 * mesh_bb.size().z()) - instance_offset;
+            else
+                // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
+                offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
             new_volume->set_offset(inv_inst_transform * offset);
         }
         else
@@ -2690,11 +2695,16 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     new_volume->set_transformation(v->get_instance_transformation().get_matrix_no_offset().inverse());
     const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
     // Set the modifier position.
-    auto offset = (type_name == "Slab") ?
+    Vec3d offset;
+    if (type_name == "Slab")
         // Slab: Lift to print bed
-		Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z()) :
+        offset = Vec3d(0., 0., 0.5 * mesh_bb.size().z() + instance_bb.min.z() - v->get_instance_offset().z());
+    else if (type == ModelVolumeType::PARAMETER_MODIFIER)
+        // TitanSlicer: center a new modifier on the instance's bounding box in XY, sitting on its bottom
+        offset = Vec3d(instance_bb.center().x(), instance_bb.center().y(), instance_bb.min.z() + 0.5 * mesh_bb.size().z()) - v->get_instance_offset();
+    else
         // Translate the new modifier to be pickable: move to the left front corner of the instance's bounding box, lift to print bed.
-        Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
+        offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
     new_volume->set_offset(v->get_instance_transformation().get_matrix_no_offset().inverse() * offset);
 
     // BBS: backup
