@@ -70,6 +70,8 @@ wxAuiPaneInfo AuiMgr::sidebar_pane_info()
     return wxAuiPaneInfo()
         .Name("sidebar")
         .Left()
+        // TitanSlicer: no empty caption bar above the sidebar's logo
+        .CaptionVisible(false)
         .CloseButton(false)
         .TopDockable(false)
         .BottomDockable(false)

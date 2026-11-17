@@ -8086,6 +8086,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             }
 
             sidebar_layout.is_collapsed = !sidebar.IsShown();
+            // TitanSlicer: layouts saved by older builds still have the sidebar's caption bar turned on
+            sidebar.CaptionVisible(false);
         }
 
         // Keep tracking the current sidebar size, by storing it using `best_size`, which will be stored
