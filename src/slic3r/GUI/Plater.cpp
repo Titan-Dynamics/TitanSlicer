@@ -104,6 +104,8 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/directory.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -12429,6 +12431,37 @@ static std::vector<std::pair<int, int>> reloadable_volumes(const Model &model, c
 }
 #endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
+// TitanSlicer: finds files by name (ignoring case) in root and up to max_depth levels of folders below it.
+// The search goes one level at a time, so the shallowest match wins and it stops once every file is found.
+// Symlinked folders are not entered, so a link loop can't trap it. Returns lower case file name -> path.
+static std::unordered_map<std::string, fs::path> find_files_in_subfolders(const fs::path &root, const std::vector<fs::path> &files, int max_depth)
+{
+    std::unordered_set<std::string> wanted;
+    for (const fs::path &file : files)
+        wanted.insert(boost::algorithm::to_lower_copy(file.filename().string()));
+
+    std::unordered_map<std::string, fs::path> found;
+    std::vector<fs::path> level{root};
+    for (int depth = 0; depth <= max_depth && !level.empty() && found.size() < wanted.size(); ++depth) {
+        std::vector<fs::path> next_level;
+        for (const fs::path &dir : level) {
+            boost::system::error_code ec;
+            for (fs::directory_iterator it(dir, ec); !ec && it != fs::directory_iterator(); it.increment(ec)) {
+                boost::system::error_code entry_ec;
+                if (fs::is_directory(it->symlink_status(entry_ec))) {
+                    next_level.push_back(it->path());
+                    continue;
+                }
+                std::string name = boost::algorithm::to_lower_copy(it->path().filename().string());
+                if (wanted.count(name) > 0 && fs::is_regular_file(it->status(entry_ec)))
+                    found.emplace(std::move(name), it->path());
+            }
+        }
+        level = std::move(next_level);
+    }
+    return found;
+}
+
 void Plater::priv::reload_from_disk()
 {
 #if ENABLE_RELOAD_FROM_DISK_REWORK
@@ -12542,6 +12575,39 @@ void Plater::priv::reload_from_disk()
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
     missing_input_paths.erase(std::unique(missing_input_paths.begin(), missing_input_paths.end()), missing_input_paths.end());
 
+    // TitanSlicer: moves the missing files found in dir, or up to 10 levels of folders below it, to input_paths
+    auto find_missing_files_in = [this, &missing_input_paths, &input_paths](const fs::path &dir) {
+        wxBusyCursor wait;
+        wxBusyInfo   info(_L("Searching for the missing files..."), q->get_current_canvas3D()->get_wxglcanvas());
+        const std::unordered_map<std::string, fs::path> found_paths = find_files_in_subfolders(dir, missing_input_paths, 10);
+        std::vector<fs::path>::iterator it = missing_input_paths.begin();
+        while (it != missing_input_paths.end()) {
+            auto found = found_paths.find(boost::algorithm::to_lower_copy(it->filename().string()));
+            if (found != found_paths.end()) {
+                input_paths.push_back(found->second);
+                it = missing_input_paths.erase(it);
+            }
+            else
+                ++it;
+        }
+    };
+
+    // TitanSlicer: ask for one folder to search first, then file by file only for what isn't under it.
+    // The folder dialog starts at the closest folder of the old location that still exists.
+    if (!missing_input_paths.empty()) {
+        boost::system::error_code ec;
+        fs::path start_dir = missing_input_paths.front().parent_path();
+        while (!start_dir.empty() && !fs::is_directory(start_dir, ec))
+            start_dir = start_dir.parent_path();
+        const unsigned int missing_count = static_cast<unsigned int>(missing_input_paths.size());
+        wxDirDialog dialog(q,
+                           format_wxstr(_L_PLURAL("Select a folder to search for %1% missing file", "Select a folder to search for %1% missing files", missing_count), missing_count),
+                           start_dir.empty() ? from_u8(wxGetApp().app_config->get_last_dir()) : from_path(start_dir), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+        if (dialog.ShowModal() != wxID_OK)
+            return;
+        find_missing_files_in(fs::path(dialog.GetPath().ToUTF8().data()));
+    }
+
     while (!missing_input_paths.empty()) {
         // ask user to select the missing file
         fs::path search = missing_input_paths.back();
@@ -12562,18 +12628,9 @@ void Plater::priv::reload_from_disk()
 
             fs::path sel_path = fs::path(sel_filename_path).remove_filename().string();
 
-            std::vector<fs::path>::iterator it = missing_input_paths.begin();
-            while (it != missing_input_paths.end()) {
-                // try to use the path of the selected file with all remaining missing files
-                fs::path repathed_filename = sel_path;
-                repathed_filename /= it->filename();
-                if (fs::exists(repathed_filename)) {
-                    input_paths.push_back(repathed_filename.string());
-                    it = missing_input_paths.erase(it);
-                }
-                else
-                    ++it;
-            }
+            // TitanSlicer: look for the remaining missing files in the selected file's folder and up to 10 levels below it
+            if (!missing_input_paths.empty())
+                find_missing_files_in(sel_path);
         }
         else {
             wxString      message = _L("Do you want to replace it?");
