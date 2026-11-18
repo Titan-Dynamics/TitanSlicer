@@ -7,6 +7,8 @@
 #include "PrintBase.hpp"
 #include <utility>
 #include <string>
+#include <cstring>
+#include <initializer_list>
 #include <mutex>
 #include <vector>
 #include "libslic3r.h"
@@ -93,6 +95,7 @@
 #include <unordered_set>
 #include <sstream>
 #include <boost/filesystem/path.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/regex.hpp>
@@ -5808,6 +5811,49 @@ void Print::_make_wipe_tower()
         if (!intersection(get_bed_excluded_area(m_config), Polygons{footprint}).empty())
             throw Slic3r::SlicingError(L("Prime tower is too close to an exclusion area, and collisions will be caused.\n"));
     }
+}
+
+// TitanSlicer: an object's name without the model file extension it was loaded with
+static std::string object_name_without_model_extension(const std::string &name)
+{
+    static const char *const model_extensions[] = {".stl", ".obj", ".3mf", ".amf", ".step", ".stp", ".svg", ".drc", ".ply"};
+    for (const char *ext : model_extensions)
+        if (boost::algorithm::iends_with(name, ext))
+            return name.substr(0, name.size() - std::strlen(ext));
+    return name;
+}
+
+// TitanSlicer: <project>_<material>_<plate name>_<part>_<part>...gcode, what the slicer names exported G-code instead of filename_format.
+// The project is left out when project_name is empty (unsaved), and the plate while it has no name (shown as "Untitled").
+// The material is the filament types printed. Until the G-code is generated it is the {printing_filament_types}
+// placeholder, which PrintStatistics::finalize_output_path() fills in when the file is exported.
+// The parts are the distinct names of the objects on this plate, counted at the end if they don't all fit.
+std::string Print::output_filename_from_parts(const std::string &project_name) const
+{
+    if (m_objects.empty())
+        return {};
+    std::vector<std::string> parts;
+    for (const PrintObject *object : m_objects) {
+        std::string part = sanitize_filename(object_name_without_model_extension(object->model_object()->name));
+        if (!part.empty() && std::find(parts.begin(), parts.end(), part) == parts.end())
+            parts.push_back(std::move(part));
+    }
+    std::string name = sanitize_filename(project_name);
+    const std::string material = this->finished() ? sanitize_filename(m_print_statistics.printing_filament_types) : "{printing_filament_types}";
+    for (const std::string &segment : {material, sanitize_filename(get_plate_name())})
+        if (!segment.empty())
+            name += (name.empty() ? "" : "_") + segment;
+    // Keep the name well under the 255 byte limit of common file systems.
+    const size_t max_name_length = 200;
+    size_t       num_added       = 0;
+    for (; num_added < parts.size(); ++num_added) {
+        if (!name.empty() && name.size() + 1 + parts[num_added].size() > max_name_length)
+            break;
+        name += (name.empty() ? "" : "_") + parts[num_added];
+    }
+    if (num_added < parts.size())
+        name += "_and_" + std::to_string(parts.size() - num_added) + "_more";
+    return name.empty() ? name : name + ".gcode";
 }
 
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters

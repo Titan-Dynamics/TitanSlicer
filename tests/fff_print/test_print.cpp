@@ -700,6 +700,69 @@ TEST_CASE("Print: {first_object_name} is not replaced by the saved-project file 
     CHECK(resolved_output_name(model, "{first_object_name}", "SavedProject") == "WidgetPart.gcode");
 }
 
+TEST_CASE("Exported G-code is named after the project, material, plate and each distinct part on it", "[Print]")
+{
+    Model model;
+    add_named_cube(model, "Bracket.stl");
+    add_named_cube(model, "Bolt.STL");
+    add_named_cube(model, "Bolt.stl");
+    add_named_cube(model, "Spacer 2.5mm");
+    add_named_cube(model, "OtherPlate.stl")->instances.front()->print_volume_state = ModelInstancePVS_Fully_Outside;
+
+    Print print;
+    for (ModelObject* obj : model.objects)
+        print.auto_assign_extruders(obj);
+    print.apply(model, DynamicPrintConfig::full_print_config());
+
+    // Not sliced, so the material is still the placeholder that the export fills in.
+    SECTION("each distinct part on the plate, without its model file extension") {
+        print.set_plate_name("Left/Right");
+        CHECK(print.output_filename_from_parts("Job") == "Job_{printing_filament_types}_Left_Right_Bracket_Bolt_Spacer 2.5mm.gcode");
+    }
+
+    SECTION("leaves out an unsaved project and an unnamed plate") {
+        CHECK(print.output_filename_from_parts("") == "{printing_filament_types}_Bracket_Bolt_Spacer 2.5mm.gcode");
+    }
+}
+
+TEST_CASE("Exported G-code names give the filament types printed after the project", "[Print]")
+{
+    DynamicPrintConfig config = multifilament_config(2, {
+        { "filament_type", "ABS;PLA" },
+        { "enable_prime_tower", 0 },
+    });
+    const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", 1 } }, { { "extruder", 2 } } };
+    Print print;
+    Model model;
+    init_print({ cube(20), cube(20) }, print, model, config, &overrides);
+    Slic3r::Test::gcode(print);
+
+    CHECK(boost::starts_with(print.output_filename_from_parts("Job"), "Job_ABS_PLA_"));
+}
+
+TEST_CASE("Exported G-code names count the parts that don't fit", "[Print]")
+{
+    Model model;
+    for (int i = 0; i < 30; ++i)
+        add_named_cube(model, "Part number " + std::to_string(i) + ".stl");
+
+    Print print;
+    for (ModelObject* obj : model.objects)
+        print.auto_assign_extruders(obj);
+    print.apply(model, DynamicPrintConfig::full_print_config());
+
+    // "Job_{printing_filament_types}" and 12 parts fill the 200 characters, the other 18 are counted.
+    const std::string name = print.output_filename_from_parts("Job");
+    CHECK(boost::starts_with(name, "Job_{printing_filament_types}_Part number 0_Part number 1_"));
+    CHECK(boost::ends_with(name, "_Part number 11_and_18_more.gcode"));
+}
+
+TEST_CASE("Exported G-code name is empty when the plate has no objects", "[Print]")
+{
+    Print print;
+    CHECK(print.output_filename_from_parts("Job").empty());
+}
+
 TEST_CASE("{printing_filament_types} lists the filament types really printed", "[Print]")
 {
     // Two filaments of different types. The start G-code uses the placeholder too: it has to

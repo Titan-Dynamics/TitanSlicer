@@ -37,6 +37,7 @@
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Model.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "PostProcessor.hpp"
@@ -50,6 +51,7 @@
 
 #include <boost/format/format_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
@@ -213,6 +215,15 @@ PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::filesystem::path& project_path)
 {
     assert(m_print != nullptr);
+    // TitanSlicer: name exported G-code after the project, material, plate and parts, see Print::output_filename_from_parts()
+    if (m_print == m_fff_print) {
+        const std::string name = m_fff_print->output_filename_from_parts(project_path.empty() ? std::string() : project_path.stem().string());
+        if (!name.empty()) {
+            const boost::filesystem::path dir = project_path.empty() ?
+                boost::filesystem::path(m_fff_print->model().propose_export_file_name_and_path()).parent_path() : project_path.parent_path();
+            return (dir / name).make_preferred().string();
+        }
+    }
     if (project_path.empty())
         return m_print->output_filepath("");
     return m_print->output_filepath(project_path.parent_path().string(), project_path.stem().string());

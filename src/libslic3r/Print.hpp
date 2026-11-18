@@ -1315,6 +1315,8 @@ public:
     bool                        enable_timelapse_print() const;
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
+	// TitanSlicer: <project>_<material>_<plate name>_<part>_<part>...gcode, or empty when the plate has no objects.
+	std::string                 output_filename_from_parts(const std::string &project_name) const;
 
 	std::string                 get_model_name() const;
 	std::string                 get_plate_number_formatted() const;
