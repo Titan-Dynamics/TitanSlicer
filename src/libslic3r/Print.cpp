@@ -5823,10 +5823,10 @@ static std::string object_name_without_model_extension(const std::string &name)
     return name;
 }
 
-// TitanSlicer: <project>_<material>_<plate name>_<part>_<part>...gcode, what the slicer names exported G-code instead of filename_format.
+// TitanSlicer: <project>_<material>_<plate name>_<print time>_<part>_<part>...gcode, what the slicer names exported G-code instead of filename_format.
 // The project is left out when project_name is empty (unsaved), and the plate while it has no name (shown as "Untitled").
-// The material is the filament types printed. Until the G-code is generated it is the {printing_filament_types}
-// placeholder, which PrintStatistics::finalize_output_path() fills in when the file is exported.
+// The material is the filament types printed and the print time is the normal mode estimate. Until the G-code is generated they are
+// the {printing_filament_types} and {print_time} placeholders, which PrintStatistics::finalize_output_path() fills in when the file is exported.
 // The parts are the distinct names of the objects on this plate, counted at the end if they don't all fit.
 std::string Print::output_filename_from_parts(const std::string &project_name) const
 {
@@ -5839,8 +5839,10 @@ std::string Print::output_filename_from_parts(const std::string &project_name) c
             parts.push_back(std::move(part));
     }
     std::string name = sanitize_filename(project_name);
-    const std::string material = this->finished() ? sanitize_filename(m_print_statistics.printing_filament_types) : "{printing_filament_types}";
-    for (const std::string &segment : {material, sanitize_filename(get_plate_name())})
+    const bool        sliced     = this->finished();
+    const std::string material   = sliced ? sanitize_filename(m_print_statistics.printing_filament_types) : "{printing_filament_types}";
+    const std::string print_time = sliced ? sanitize_filename(short_time(m_print_statistics.estimated_normal_print_time)) : "{print_time}";
+    for (const std::string &segment : {material, sanitize_filename(get_plate_name()), print_time})
         if (!segment.empty())
             name += (name.empty() ? "" : "_") + segment;
     // Keep the name well under the 255 byte limit of common file systems.

@@ -215,7 +215,7 @@ PrinterTechnology BackgroundSlicingProcess::current_printer_technology() const
 std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::filesystem::path& project_path)
 {
     assert(m_print != nullptr);
-    // TitanSlicer: name exported G-code after the project, material, plate and parts, see Print::output_filename_from_parts()
+    // TitanSlicer: name exported G-code after the project, material, plate, print time and parts, see Print::output_filename_from_parts()
     if (m_print == m_fff_print) {
         const std::string name = m_fff_print->output_filename_from_parts(project_path.empty() ? std::string() : project_path.stem().string());
         if (!name.empty()) {
